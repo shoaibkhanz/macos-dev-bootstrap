@@ -35,7 +35,11 @@ brew "node"
 brew "go"
 brew "rust"
 brew "lua-language-server"
+brew "luarocks"        # Lua package manager
 brew "tree-sitter"
+brew "python@3.13"     # Python for neovim provider
+brew "ruby"            # Ruby for neovim provider
+brew "tectonic"        # Modern LaTeX engine
 
 # =============================================================================
 # Kubernetes & Cloud
