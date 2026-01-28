@@ -78,10 +78,15 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 ### Global Gitignore
 Automatically ignores across all repos:
 - `.DS_Store`, `._*` (macOS junk)
-- `.claude/` (AI assistant files)
 - `.env`, `.secrets` (credentials)
 - `__pycache__/`, `.venv/` (Python)
 - `node_modules/` (Node.js)
+- **AI assistant files:**
+  - `.claude/`, `CLAUDE.md`, `claude.md`
+  - `agents.md`, `AGENTS.md`
+  - `.cursorrules`, `.cursorignore`
+  - `.github/copilot-instructions.md`
+  - `.aider*`
 
 ### Homebrew Packages
 

@@ -13,8 +13,16 @@
 .Spotlight-V100
 .Trashes
 
-# Claude Code / AI assistants
+# AI assistants (Claude, Cursor, Copilot, etc.)
 .claude/
+CLAUDE.md
+claude.md
+agents.md
+AGENTS.md
+.cursorrules
+.cursorignore
+.github/copilot-instructions.md
+.aider*
 
 # Editor directories and files
 .idea/
