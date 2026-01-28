@@ -142,6 +142,9 @@ configure_macos() {
     # Disable auto-correct
     run defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
+    # Raycast: Set hotkey to Option+Space
+    run defaults write com.raycast.macos raycastGlobalHotkey -string "Option-49"
+
     success "macOS settings configured (some may require logout/restart)"
 }
 
