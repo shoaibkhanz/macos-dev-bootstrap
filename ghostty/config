@@ -1,0 +1,96 @@
+# Ghostty Configuration
+# Dark theme optimized for OpenCode
+
+# Font Configuration
+font-family = GeistMono Nerd Font Mono
+font-size = 18
+font-style-bold = Bold
+adjust-cell-height = 15%
+
+# Theme & Colors - Dark black background matching OpenCode
+# theme = none
+background = 000000
+foreground = e6e6e6
+# OpenCode-inspired color palette
+palette = 0=#000000
+palette = 1=#ff5555
+palette = 2=#50fa7b
+palette = 3=#f1fa8c
+palette = 4=#6272a4
+palette = 5=#bd93f9
+palette = 6=#8be9fd
+palette = 7=#e6e6e6
+palette = 8=#4d4d4d
+palette = 9=#ff6e6e
+palette = 10=#69ff94
+palette = 11=#ffffa5
+palette = 12=#7a8bbf
+palette = 13=#d6acff
+palette = 14=#a4ffff
+palette = 15=#ffffff
+
+# Cursor Configuration
+cursor-style = block
+cursor-color = ffffff
+
+# Shell Integration
+shell-integration-features = no-cursor,sudo,no-title
+
+# Mouse Configuration
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 1
+copy-on-select = clipboard
+
+# Window Configuration
+window-padding-balance = true
+window-save-state = always
+window-theme = system
+window-subtitle = false
+title = " "
+
+# macOS Specific
+macos-titlebar-style = transparent
+
+# Key Bindings Configuration
+
+# Global toggle for quick terminal
+keybind = global:ctrl+grave_accent=toggle_quick_terminal
+
+# Config management
+keybind = cmd+s>r=reload_config
+keybind = cmd+s>x=close_surface
+
+# Window management
+keybind = cmd+s>n=new_window
+
+# Tab management
+keybind = cmd+s>c=new_tab
+keybind = cmd+s>shift+l=next_tab
+keybind = cmd+s>shift+h=previous_tab
+keybind = cmd+s>comma=move_tab:-1
+keybind = cmd+s>period=move_tab:1
+
+# Quick tab switching (1-9)
+keybind = cmd+s>1=goto_tab:1
+keybind = cmd+s>2=goto_tab:2
+keybind = cmd+s>3=goto_tab:3
+keybind = cmd+s>4=goto_tab:4
+keybind = cmd+s>5=goto_tab:5
+keybind = cmd+s>6=goto_tab:6
+keybind = cmd+s>7=goto_tab:7
+keybind = cmd+s>8=goto_tab:8
+keybind = cmd+s>9=goto_tab:9
+
+# Split management
+keybind = cmd+s>\=new_split:right
+keybind = cmd+s>-=new_split:down
+
+# Split navigation (vim-style)
+keybind = cmd+s>j=goto_split:bottom
+keybind = cmd+s>k=goto_split:top
+keybind = cmd+s>h=goto_split:left
+keybind = cmd+s>l=goto_split:right
+
+# Split utilities
+keybind = cmd+s>z=toggle_split_zoom
+keybind = cmd+s>e=equalize_splits
