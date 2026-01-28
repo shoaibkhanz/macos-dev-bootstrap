@@ -1,6 +1,15 @@
 # macOS Dev Bootstrap
 
-Portable setup for bootstrapping a new macOS dev machine.
+One command to set up a fully configured macOS development environment.
+
+## Why?
+
+Setting up a new Mac is tedious - installing tools, configuring shells, setting up editors, tweaking system preferences. This repo automates all of it:
+
+- **Reproducible** - Same setup every time, on any Mac
+- **Version controlled** - Track changes to your configs over time
+- **Portable** - Clone and run, no manual steps
+- **Idempotent** - Safe to run multiple times (skips what's already done)
 
 ## Quick Start
 
@@ -16,38 +25,92 @@ cd macos-dev-bootstrap
 ./install.sh
 ```
 
+## What the Installer Does
+
+1. **Installs Homebrew** (if not present)
+2. **Installs all packages** from Brewfile (CLI tools, apps, fonts)
+3. **Configures macOS** settings for faster keyboard, disabled auto-correct, etc.
+4. **Backs up existing configs** to `~/.config-backup-TIMESTAMP/`
+5. **Creates symlinks** from your home directory to this repo
+6. **Configures git** to use the global gitignore
+7. **Installs TPM** (Tmux Plugin Manager)
+8. **Creates secrets template** at `~/.secrets.example`
+
+Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nvim/` are automatically reflected in this repo.
+
 ## What's Included
 
-### Configurations
-- **zsh** - Shell config with Powerlevel10k, zinit plugins, aliases
-- **tmux** - Terminal multiplexer with Yugen theme, TPM plugins
-- **neovim** - AstroNvim setup with custom plugins
-- **aerospace** - Tiling window manager for macOS
-- **ghostty** - Terminal emulator config
-- **starship** - Cross-shell prompt
-- **global gitignore** - Ignores `.claude/`, `.DS_Store`, etc. everywhere
+### Shell (zsh)
+- **Powerlevel10k** - Fast, customizable prompt
+- **Zinit** - Plugin manager with lazy loading
+- **Plugins** - syntax highlighting, autosuggestions, fzf-tab
+- **Aliases** - git, docker, kubernetes, tmux shortcuts
+- **Zoxide** - Smarter `cd` that learns your habits
+
+### Terminal Multiplexer (tmux)
+- **Yugen theme** - Dark, minimal aesthetic
+- **TPM plugins** - resurrect, continuum, vim-navigator
+- **Prefix: Ctrl-a** - Easier than default Ctrl-b
+- **Vi mode** - Vim keybindings in copy mode
+
+### Editor (Neovim)
+- **AstroNvim** - Feature-rich Neovim distribution
+- **LSP** - Language servers via Mason
+- **Treesitter** - Better syntax highlighting
+- **Custom plugins** - lazygit, trouble, obsidian integration
+
+### Window Manager (Aerospace)
+- **Tiling** - Automatic window arrangement
+- **Workspaces** - Organized by purpose (work, communication, etc.)
+- **Vim navigation** - Alt+hjkl to move focus
+
+### Terminal (Ghostty)
+- **Fast** - GPU-accelerated rendering
+- **Dark theme** - Matches the overall aesthetic
+- **Nerd fonts** - Icons everywhere
+
+### Global Gitignore
+Automatically ignores across all repos:
+- `.DS_Store`, `._*` (macOS junk)
+- `.claude/` (AI assistant files)
+- `.env`, `.secrets` (credentials)
+- `__pycache__/`, `.venv/` (Python)
+- `node_modules/` (Node.js)
 
 ### Homebrew Packages
-Core tools: git, zsh, tmux, neovim, ripgrep, fd, fzf, zoxide, bat, eza
 
-Development: uv, lazygit, gh, node, go, rust
+**Core CLI:**
+git, zsh, tmux, neovim, ripgrep, fd, fzf, zoxide, bat, eza, jq, yq
 
-Kubernetes: kubectl, kubecolor, helm, k9s, kind, argocd
+**Development:**
+uv (Python), lazygit, gh, node, go, rust, lua-language-server
 
-Docker: docker, docker-compose, lazydocker
+**Kubernetes & Cloud:**
+kubectl, kubecolor, helm, k9s, kind, argocd, awscli, terraform
+
+**Docker:**
+docker, docker-compose, lazydocker
+
+**Apps:**
+aerospace, ghostty, nerd fonts
 
 ### macOS Optimizations
-- Fastest key repeat speed
-- Full keyboard navigation (Tab through all controls)
-- Disabled press-and-hold (enables proper key repeat)
-- Disabled auto-correct and smart quotes
+
+| Setting | Effect |
+|---------|--------|
+| `KeyRepeat = 1` | Fastest key repeat speed |
+| `InitialKeyRepeat = 10` | Shortest delay before repeat |
+| `ApplePressAndHoldEnabled = false` | Key repeat instead of accent menu |
+| `AppleKeyboardUIMode = 3` | Tab through all UI controls |
+| `NSAutomaticSpellingCorrectionEnabled = false` | No auto-correct |
+| `NSAutomaticQuoteSubstitutionEnabled = false` | No smart quotes |
 
 ## Post-Install
 
-1. Restart terminal or run `source ~/.zshrc`
-2. In tmux, press `Ctrl-a + I` to install plugins
-3. Open nvim and let lazy.nvim install plugins
-4. Create your secrets file:
+1. **Restart terminal** or run `source ~/.zshrc`
+2. **Install tmux plugins** - Open tmux, press `Ctrl-a + I`
+3. **Install nvim plugins** - Open nvim, lazy.nvim auto-installs
+4. **Add your secrets:**
    ```bash
    cp ~/.secrets.example ~/.secrets
    nvim ~/.secrets  # Add your API keys
@@ -57,27 +120,42 @@ Docker: docker, docker-compose, lazydocker
 
 ```
 macos-dev-bootstrap/
-├── install.sh          # Main setup script
-├── Brewfile            # Homebrew packages
-├── secrets.example     # Template for API keys
+├── install.sh              # Main setup script
+├── Brewfile                # Homebrew packages
+├── secrets.example         # Template for API keys
 ├── dotfiles/
-│   ├── .zshrc          # Zsh configuration
-│   ├── .tmux.conf      # Tmux configuration
-│   ├── .gitconfig      # Git configuration
-│   └── .gitignore_global  # Global gitignore
-├── nvim/               # Neovim/AstroNvim config
-├── aerospace/          # Window manager config
-├── ghostty/            # Terminal config
-└── starship.toml       # Prompt config
+│   ├── .zshrc              # Shell config
+│   ├── .tmux.conf          # Tmux config
+│   ├── .gitconfig          # Git config
+│   └── .gitignore_global   # Global gitignore
+├── nvim/                   # Neovim config
+├── aerospace/              # Window manager config
+├── ghostty/                # Terminal config
+└── starship.toml           # Prompt config
 ```
 
-## Updating
+## Updating Your Configs
 
-After running the installer, your configs are symlinked. Changes you make in `~/.zshrc`, `~/.config/nvim/`, etc. are reflected in this repo.
+Configs are symlinked, so changes sync automatically:
 
 ```bash
+# After making changes to any config
 cd /path/to/macos-dev-bootstrap
 git add -A
 git commit -m "Update configs"
 git push
 ```
+
+## Re-running the Installer
+
+The script is idempotent - safe to run multiple times:
+
+- Already-installed packages are skipped
+- Already-symlinked files aren't backed up again
+- macOS settings are just reapplied
+
+If something fails halfway, just run `./install.sh` again.
+
+## License
+
+MIT - Use however you like.
