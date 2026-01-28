@@ -264,7 +264,15 @@ install_tpm() {
     else
         run git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
         success "TPM installed"
-        info "Run 'prefix + I' in tmux to install plugins"
+    fi
+
+    # Install tmux plugins via TPM
+    info "Installing tmux plugins..."
+    if [ -x "$tpm_dir/bin/install_plugins" ]; then
+        run "$tpm_dir/bin/install_plugins"
+        success "Tmux plugins installed"
+    else
+        warn "TPM install script not found, run 'prefix + I' in tmux manually"
     fi
 }
 
