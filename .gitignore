@@ -1,0 +1,30 @@
+# Secrets and credentials
+*.secrets
+.secrets
+.env
+.env.*
+!.env.example
+credentials.json
+*.pem
+*.key
+
+# Cloud provider configs (may contain tokens)
+**/gcloud/
+**/ngrok/
+**/op/config
+**/argocd/config
+**/gh/hosts.yml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor backups
+*~
+*.swp
+*.swo
+*.bak
+
+# Neovim
+nvim/lazy-lock.json

@@ -1,0 +1,56 @@
+# =============================================================================
+# Global Gitignore
+# =============================================================================
+# This file is used by git globally to ignore files in all repositories.
+# Configured via: git config --global core.excludesfile ~/.gitignore_global
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Claude Code / AI assistants
+.claude/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.bak
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.secrets
+.secrets
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+ENV/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini

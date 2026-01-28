@@ -1,0 +1,17 @@
+[includeIf "/Users/shoaib/github-ch/"]
+path = /Users/shoaib/github-ch/.gitconfig.ch
+
+[includeIf "/Users/shoaib/github-personal/"]
+path = /Users/shoaib/github-personal/.gitconfig.personal
+
+[core]
+excludesfile = ~/.gitignore
+	editor = nvim
+
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
