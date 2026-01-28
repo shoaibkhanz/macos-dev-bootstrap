@@ -29,12 +29,13 @@ cd macos-dev-bootstrap
 
 1. **Installs Homebrew** (if not present)
 2. **Installs all packages** from Brewfile (CLI tools, apps, fonts)
-3. **Configures macOS** settings for faster keyboard, disabled auto-correct, etc.
+3. **Configures macOS** settings for faster keyboard, disabled auto-correct, Raycast hotkey
 4. **Backs up existing configs** to `~/.config-backup-TIMESTAMP/`
 5. **Creates symlinks** from your home directory to this repo
 6. **Configures git** to use the global gitignore
-7. **Installs TPM** (Tmux Plugin Manager)
-8. **Creates secrets template** at `~/.secrets.example`
+7. **Sets zsh as default shell** (adds to /etc/shells if needed)
+8. **Installs TPM and tmux plugins** (auto-installs, no manual step needed)
+9. **Creates secrets template** at `~/.secrets.example`
 
 Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nvim/` are automatically reflected in this repo.
 
@@ -46,10 +47,11 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 - **Plugins** - syntax highlighting, autosuggestions, fzf-tab
 - **Aliases** - git, docker, kubernetes, tmux shortcuts
 - **Zoxide** - Smarter `cd` that learns your habits
+- **Set as default** - Automatically configured as login shell
 
 ### Terminal Multiplexer (tmux)
 - **Yugen theme** - Dark, minimal aesthetic
-- **TPM plugins** - resurrect, continuum, vim-navigator
+- **TPM plugins** - resurrect, continuum, vim-navigator (auto-installed)
 - **Prefix: Ctrl-a** - Easier than default Ctrl-b
 - **Vi mode** - Vim keybindings in copy mode
 
@@ -68,6 +70,10 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 - **Fast** - GPU-accelerated rendering
 - **Dark theme** - Matches the overall aesthetic
 - **Nerd fonts** - Icons everywhere
+
+### Productivity Apps
+- **Raycast** - Spotlight replacement (Command+Space)
+- **Handy** - Offline speech-to-text transcription
 
 ### Global Gitignore
 Automatically ignores across all repos:
@@ -92,7 +98,7 @@ kubectl, kubecolor, helm, k9s, kind, argocd, awscli, terraform
 docker, docker-compose, lazydocker
 
 **Apps:**
-aerospace, ghostty, nerd fonts
+aerospace, ghostty, raycast, handy, nerd fonts
 
 ### macOS Optimizations
 
@@ -104,17 +110,20 @@ aerospace, ghostty, nerd fonts
 | `AppleKeyboardUIMode = 3` | Tab through all UI controls |
 | `NSAutomaticSpellingCorrectionEnabled = false` | No auto-correct |
 | `NSAutomaticQuoteSubstitutionEnabled = false` | No smart quotes |
+| `raycastGlobalHotkey = Command-49` | Raycast opens with Command+Space |
 
 ## Post-Install
 
-1. **Restart terminal** or run `source ~/.zshrc`
-2. **Install tmux plugins** - Open tmux, press `Ctrl-a + I`
-3. **Install nvim plugins** - Open nvim, lazy.nvim auto-installs
+1. **Restart terminal** to use zsh with new config
+2. **Open nvim** - lazy.nvim will auto-install plugins on first launch
+3. **Configure Handy** - Set your preferred hotkey in the app
 4. **Add your secrets:**
    ```bash
    cp ~/.secrets.example ~/.secrets
    nvim ~/.secrets  # Add your API keys
    ```
+
+Note: Zsh is set as default shell and tmux plugins are installed automatically - no manual steps needed.
 
 ## Directory Structure
 
@@ -152,6 +161,7 @@ The script is idempotent - safe to run multiple times:
 
 - Already-installed packages are skipped
 - Already-symlinked files aren't backed up again
+- Zsh default shell check is skipped if already set
 - macOS settings are just reapplied
 
 If something fails halfway, just run `./install.sh` again.
