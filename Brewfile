@@ -73,6 +73,7 @@ brew "chafa"           # Image viewer for terminal
 cask "aerospace"       # Tiling window manager
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
+cask "handy"           # Offline speech-to-text
 
 # =============================================================================
 # Fonts
