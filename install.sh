@@ -229,6 +229,32 @@ configure_git() {
     success "Git configured to use ~/.gitignore_global"
 }
 
+configure_zsh() {
+    info "Configuring zsh as default shell..."
+
+    # Check if zsh is already the default shell
+    if [[ "$SHELL" == *"zsh"* ]]; then
+        success "zsh is already the default shell"
+    else
+        # Get the path to Homebrew's zsh
+        local zsh_path="/opt/homebrew/bin/zsh"
+        if [[ ! -x "$zsh_path" ]]; then
+            zsh_path="/bin/zsh"
+        fi
+
+        # Add to /etc/shells if not present
+        if ! grep -q "$zsh_path" /etc/shells; then
+            info "Adding $zsh_path to /etc/shells (requires sudo)"
+            echo "$zsh_path" | sudo tee -a /etc/shells > /dev/null
+        fi
+
+        # Change default shell
+        info "Setting zsh as default shell (requires password)"
+        run chsh -s "$zsh_path"
+        success "zsh set as default shell (restart terminal to take effect)"
+    fi
+}
+
 install_tpm() {
     info "Setting up Tmux Plugin Manager (TPM)..."
 
@@ -316,6 +342,7 @@ main() {
     backup_existing
     create_symlinks
     configure_git
+    configure_zsh
     install_tpm
     create_secrets_template
 
