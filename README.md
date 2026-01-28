@@ -1,19 +1,19 @@
-# Dotfiles Setup
+# macOS Dev Bootstrap
 
-Portable dotfiles package for bootstrapping a new macOS machine.
+Portable setup for bootstrapping a new macOS dev machine.
 
 ## Quick Start
 
 ```bash
-# Clone the repo
-git clone https://github.com/shoaibkhanz/configs.git ~/code/configs
+# Clone the repo (anywhere you like)
+git clone https://github.com/shoaibkhanz/macos-dev-bootstrap.git
+cd macos-dev-bootstrap
+
+# Preview what will happen
+./install.sh --dry-run
 
 # Run the installer
-cd ~/code/configs/full_setup
 ./install.sh
-
-# Or preview changes first
-./install.sh --dry-run
 ```
 
 ## What's Included
@@ -25,6 +25,7 @@ cd ~/code/configs/full_setup
 - **aerospace** - Tiling window manager for macOS
 - **ghostty** - Terminal emulator config
 - **starship** - Cross-shell prompt
+- **global gitignore** - Ignores `.claude/`, `.DS_Store`, etc. everywhere
 
 ### Homebrew Packages
 Core tools: git, zsh, tmux, neovim, ripgrep, fd, fzf, zoxide, bat, eza
@@ -55,14 +56,15 @@ Docker: docker, docker-compose, lazydocker
 ## Directory Structure
 
 ```
-full_setup/
+macos-dev-bootstrap/
 ├── install.sh          # Main setup script
 ├── Brewfile            # Homebrew packages
 ├── secrets.example     # Template for API keys
 ├── dotfiles/
 │   ├── .zshrc          # Zsh configuration
 │   ├── .tmux.conf      # Tmux configuration
-│   └── .gitconfig      # Git configuration
+│   ├── .gitconfig      # Git configuration
+│   └── .gitignore_global  # Global gitignore
 ├── nvim/               # Neovim/AstroNvim config
 ├── aerospace/          # Window manager config
 ├── ghostty/            # Terminal config
@@ -71,11 +73,10 @@ full_setup/
 
 ## Updating
 
-To update your dotfiles after making changes:
+After running the installer, your configs are symlinked. Changes you make in `~/.zshrc`, `~/.config/nvim/`, etc. are reflected in this repo.
 
 ```bash
-# Configs are symlinked, so changes in ~ are reflected here
-cd ~/code/configs/full_setup
+cd /path/to/macos-dev-bootstrap
 git add -A
 git commit -m "Update configs"
 git push
