@@ -103,7 +103,7 @@ install_homebrew() {
 install_packages() {
     info "Installing packages from Brewfile..."
     if [ -f "$SCRIPT_DIR/Brewfile" ]; then
-        run brew bundle --file="$SCRIPT_DIR/Brewfile" --no-lock
+        run brew bundle --file="$SCRIPT_DIR/Brewfile"
         success "Packages installed"
     else
         warn "Brewfile not found, skipping package installation"
