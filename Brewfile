@@ -2,8 +2,6 @@
 # Install with: brew bundle --file=Brewfile
 
 # Taps
-tap "homebrew/bundle"
-tap "homebrew/cask-fonts"
 tap "nikitabobko/tap"  # aerospace
 
 # =============================================================================
