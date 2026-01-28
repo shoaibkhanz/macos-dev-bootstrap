@@ -276,6 +276,35 @@ install_tpm() {
     fi
 }
 
+install_neovim_providers() {
+    info "Installing Neovim providers and tools..."
+
+    # Python provider via uv
+    if command -v uv &> /dev/null; then
+        run uv tool install pynvim
+        success "Python provider (pynvim) installed via uv"
+    else
+        warn "uv not found, skipping Python provider"
+    fi
+
+    # Ruby provider
+    local ruby_path="/opt/homebrew/opt/ruby/bin"
+    if [ -x "$ruby_path/gem" ]; then
+        run "$ruby_path/gem" install neovim
+        success "Ruby provider installed"
+    else
+        warn "Homebrew Ruby not found, skipping Ruby provider"
+    fi
+
+    # Mermaid CLI for diagrams
+    if command -v npm &> /dev/null; then
+        run npm install -g @mermaid-js/mermaid-cli
+        success "Mermaid CLI (mmdc) installed"
+    else
+        warn "npm not found, skipping mermaid-cli"
+    fi
+}
+
 create_secrets_template() {
     info "Creating secrets template..."
 
@@ -352,6 +381,7 @@ main() {
     configure_git
     configure_zsh
     install_tpm
+    install_neovim_providers
     create_secrets_template
 
     print_post_install
