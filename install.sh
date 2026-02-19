@@ -279,12 +279,26 @@ install_tpm() {
 install_neovim_providers() {
     info "Installing Neovim providers and tools..."
 
-    # Python provider via uv
+    # Python provider + molten-nvim dependencies via uv
     if command -v uv &> /dev/null; then
-        run uv tool install pynvim
-        success "Python provider (pynvim) installed via uv"
+        local nvim_python_dir="$HOME/.local/share/nvim/python"
+        if [ ! -f "$nvim_python_dir/pyproject.toml" ]; then
+            info "Creating Neovim Python project at $nvim_python_dir..."
+            run uv init --no-readme "$nvim_python_dir"
+        fi
+        info "Installing Neovim Python packages (pynvim, molten deps, jupytext)..."
+        run uv add --directory "$nvim_python_dir" \
+            pynvim jupyter_client jupytext nbformat \
+            cairosvg pillow ipykernel
+        success "Neovim Python environment configured at $nvim_python_dir"
+
+        # Register Jupyter kernel for molten-nvim
+        info "Registering Jupyter kernel..."
+        run uv run --directory "$nvim_python_dir" \
+            python -m ipykernel install --user --name=python3 --display-name "Python 3"
+        success "Jupyter kernel 'python3' registered"
     else
-        warn "uv not found, skipping Python provider"
+        warn "uv not found, skipping Python provider and molten setup"
     fi
 
     # Ruby provider
@@ -348,7 +362,9 @@ print_post_install() {
     echo "  1. Restart your terminal or run: source ~/.zshrc"
     echo "  2. In tmux, press 'prefix + I' to install tmux plugins"
     echo "  3. Open nvim and let lazy.nvim install plugins"
-    echo "  4. Create your secrets file:"
+    echo "  4. Open any .ipynb file in nvim to verify notebook support"
+    echo "     Use ',mi' to init a kernel, ',ml' to run a line"
+    echo "  5. Create your secrets file:"
     echo "     cp ~/.secrets.example ~/.secrets"
     echo "     nvim ~/.secrets"
     echo ""
