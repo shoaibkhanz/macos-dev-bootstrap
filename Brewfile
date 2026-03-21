@@ -2,7 +2,8 @@
 # Install with: brew bundle --file=Brewfile
 
 # Taps
-tap "nikitabobko/tap"  # aerospace
+tap "nikitabobko/tap"   # aerospace
+tap "manaflow-ai/cmux"  # cmux
 
 # =============================================================================
 # Core CLI Tools
@@ -64,6 +65,7 @@ brew "lazydocker"
 # =============================================================================
 # File Management & Utilities
 # =============================================================================
+brew "bottom"          # System monitor (btm) - used by AstroNvim
 brew "btop"            # System monitor
 brew "superfile"       # File manager TUI
 brew "yazi"            # File manager
@@ -79,6 +81,14 @@ cask "nikitabobko/tap/aerospace"  # Tiling window manager
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
 cask "handy"           # Offline speech-to-text
+cask "obsidian"        # Knowledge management
+cask "manaflow-ai/cmux/cmux"  # AI agent terminal manager
+cask "claude-code"     # Claude CLI agent
+
+# =============================================================================
+# AI & Agentic Tools
+# =============================================================================
+brew "claude-squad"    # Manage multiple AI agents in parallel
 
 # =============================================================================
 # Fonts
