@@ -224,8 +224,14 @@ create_symlinks() {
 }
 
 configure_git() {
-    info "Configuring git to use global gitignore..."
-    run git config --global core.excludesfile "$HOME/.gitignore_global"
+    info "Verifying git global gitignore..."
+    # excludesfile is set in .gitconfig (symlinked from this repo)
+    # Only set via git config if not already correct
+    local current
+    current="$(git config --global core.excludesfile 2>/dev/null)"
+    if [[ "$current" != *"gitignore_global"* ]]; then
+        run git config --global core.excludesfile "$HOME/.gitignore_global"
+    fi
     success "Git configured to use ~/.gitignore_global"
 }
 

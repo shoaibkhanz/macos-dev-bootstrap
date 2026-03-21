@@ -48,7 +48,6 @@ export XDG_CONFIG_HOME="$HOME/.config"
 typeset -U path
 path=(
   "$HOME/.local/bin"           # User-installed binaries (pipx, etc.)
-  "$HOME/.config/nvim"         # Neovim config scripts
   "$HOME/.cargo/bin"           # Rust/Cargo binaries
   "$HOME/go/bin"               # Go binaries
   "$HOME/.modular/bin"         # Modular/Mojo binaries
@@ -180,7 +179,7 @@ if [[ -x "$(command -v git)" ]]; then
   alias gcl='git clone'
   alias gco='git checkout'
   alias gcp='git cherry-pick'
-  alias gcv='git covert'
+  alias gcv='git commit --verbose'
   alias gdt='git difftool'
   alias glg='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --date=relative'
 fi

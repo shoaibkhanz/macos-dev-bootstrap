@@ -19,6 +19,8 @@ return {
         RenderMarkdownCodeInline = { fg = "#FAFAFA", bg = "#151515" },
         ["@markup.raw"] = { fg = "#FAFAFA", bg = "#151515" },
         ["@text.literal"] = { fg = "#FAFAFA", bg = "#151515" },
+        -- Override dark yellow on LSP signature/hover
+        LspSignatureActiveParameter = { fg = "#FAFAFA", bg = "#2A2A2A", bold = true, underline = true },
       },
       astrodark = { -- a table of overrides/changes when applying the astrotheme theme
         -- Normal = { bg = "#000000" },
