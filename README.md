@@ -32,10 +32,11 @@ cd macos-dev-bootstrap
 3. **Configures macOS** settings for faster keyboard, disabled auto-correct, Raycast hotkey
 4. **Backs up existing configs** to `~/.config-backup-TIMESTAMP/`
 5. **Creates symlinks** from your home directory to this repo
-6. **Configures git** to use the global gitignore
+6. **Verifies git** global gitignore is configured
 7. **Sets zsh as default shell** (adds to /etc/shells if needed)
 8. **Installs TPM and tmux plugins** (auto-installs, no manual step needed)
-9. **Creates secrets template** at `~/.secrets.example`
+9. **Installs Neovim providers** (Python via uv, Ruby, Mermaid CLI)
+10. **Creates secrets template** at `~/.secrets.example`
 
 Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nvim/` are automatically reflected in this repo.
 
@@ -56,10 +57,12 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 - **Vi mode** - Vim keybindings in copy mode
 
 ### Editor (Neovim)
-- **AstroNvim** - Feature-rich Neovim distribution
+- **AstroNvim v5** - Feature-rich Neovim distribution
 - **LSP** - Language servers via Mason
 - **Treesitter** - Better syntax highlighting
-- **Custom plugins** - lazygit, trouble, obsidian integration
+- **Jupyter notebooks** - molten-nvim, jupytext, image.nvim (Kitty graphics)
+- **Testing** - neotest with pytest adapter and DAP debugging
+- **Custom plugins** - lazygit, trouble, obsidian, render-markdown
 
 ### Window Manager (Aerospace)
 - **Tiling** - Automatic window arrangement
@@ -69,7 +72,9 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 ### Terminal (Ghostty)
 - **Fast** - GPU-accelerated rendering
 - **Dark theme** - Matches the overall aesthetic
-- **Nerd fonts** - Icons everywhere
+- **Nerd fonts** - GeistMono Nerd Font Mono
+- **Chord keybindings** - Cmd+S leader for tabs, splits, navigation
+- **Kitty graphics** - Image rendering passthrough for nvim
 
 ### Productivity Apps
 - **Raycast** - Spotlight replacement (Command+Space)
@@ -94,13 +99,16 @@ Automatically ignores across all repos:
 git, zsh, tmux, neovim, ripgrep, fd, fzf, zoxide, bat, eza, jq, yq
 
 **Development:**
-uv (Python), lazygit, gh, node, go, rust, lua-language-server
+uv (Python), lazygit, gh, glab, node, go, rust, lua-language-server, luarocks, luajit, tree-sitter, tectonic
 
 **Kubernetes & Cloud:**
 kubectl, kubecolor, helm, k9s, kind, argocd, awscli, terraform
 
 **Docker:**
 docker, docker-compose, lazydocker
+
+**Utilities:**
+btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
 **Apps:**
 aerospace, ghostty, raycast, handy, nerd fonts
@@ -121,14 +129,15 @@ aerospace, ghostty, raycast, handy, nerd fonts
 
 1. **Restart terminal** to use zsh with new config
 2. **Open nvim** - lazy.nvim will auto-install plugins on first launch
-3. **Configure Handy** - Set your preferred hotkey in the app
-4. **Add your secrets:**
+3. **Verify Jupyter** - Open any `.ipynb` in nvim, use `,mi` to init kernel, `,ml` to run a line
+4. **Configure Handy** - Set your preferred hotkey in the app
+5. **Add your secrets:**
    ```bash
    cp ~/.secrets.example ~/.secrets
    nvim ~/.secrets  # Add your API keys
    ```
 
-Note: Zsh is set as default shell and tmux plugins are installed automatically - no manual steps needed.
+Note: Zsh is set as default shell, tmux plugins are installed, and Neovim providers (Python, Ruby) are configured automatically.
 
 ## Directory Structure
 
@@ -142,7 +151,8 @@ macos-dev-bootstrap/
 │   ├── .tmux.conf          # Tmux config
 │   ├── .gitconfig          # Git config
 │   └── .gitignore_global   # Global gitignore
-├── nvim/                   # Neovim config
+├── nvim/                   # Neovim config (AstroNvim v5)
+│   └── lua/plugins/        # Plugin configs (molten, neotest, obsidian, etc.)
 ├── aerospace/              # Window manager config
 ├── ghostty/                # Terminal config
 └── starship.toml           # Prompt config
