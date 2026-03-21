@@ -189,6 +189,33 @@ create_symlinks() {
     # Ensure .config directory exists
     run mkdir -p "$HOME/.config"
 
+    # Helper: create symlink, skip if target already exists (non-symlink)
+    link_if_missing() {
+        local source="$1"
+        local target="$2"
+
+        if [ ! -e "$source" ]; then
+            warn "Source not found, skipping: $source"
+            return
+        fi
+
+        if [ -e "$target" ] && [ ! -L "$target" ]; then
+            info "Already exists (not a symlink), skipping: $target"
+            return
+        fi
+
+        # Create parent directory if needed
+        run mkdir -p "$(dirname "$target")"
+
+        # Remove existing symlink
+        if [ -L "$target" ]; then
+            run rm -f "$target"
+        fi
+
+        run ln -sf "$source" "$target"
+        success "Linked: $target -> $source"
+    }
+
     # Helper function to create a symlink
     link_file() {
         local source="$1"
@@ -221,6 +248,16 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/aerospace" "$HOME/.config/aerospace"
     link_file "$SCRIPT_DIR/ghostty" "$HOME/.config/ghostty"
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
+
+    # Claude Code: agents (skills, hooks, commands)
+    link_if_missing "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
+    link_if_missing "$SCRIPT_DIR/claude/agents/hooks" "$HOME/.agents/hooks"
+    link_if_missing "$SCRIPT_DIR/claude/agents/commands" "$HOME/.agents/commands"
+
+    # Claude Code: rules and commands
+    link_if_missing "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
+    link_if_missing "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
+    link_if_missing "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
 }
 
 configure_git() {
@@ -307,11 +344,21 @@ install_neovim_providers() {
         warn "uv not found, skipping Python provider and molten setup"
     fi
 
-    # Ruby provider
+    # Node.js provider
+    if command -v npm &> /dev/null; then
+        run npm install -g neovim
+        success "Node.js provider installed"
+    else
+        warn "npm not found, skipping Node.js provider"
+    fi
+
+    # Ruby provider (use Homebrew Ruby, add gem bin to PATH)
     local ruby_path="/opt/homebrew/opt/ruby/bin"
     if [ -x "$ruby_path/gem" ]; then
-        run "$ruby_path/gem" install neovim
-        success "Ruby provider installed"
+        local gem_bin
+        gem_bin="$("$ruby_path/ruby" -e 'puts Gem.user_dir')/bin"
+        run "$ruby_path/gem" install --user-install neovim
+        success "Ruby provider installed (gem bin: $gem_bin)"
     else
         warn "Homebrew Ruby not found, skipping Ruby provider"
     fi
