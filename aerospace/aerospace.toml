@@ -16,7 +16,7 @@ after-startup-command = [
 
 # Notify sketchybar when workspace changes
 exec-on-workspace-change = ['/bin/bash', '-c',
-  '/Users/shoaib.khan/.config/sketchybar/plugins/aerospace.sh'
+  '/Users/shoaib/.config/sketchybar/plugins/aerospace.sh'
 ]
 
 # Start AeroSpace at login
@@ -52,7 +52,7 @@ on-focus-changed = 'move-mouse window-lazy-center'
 # Also see: https://nikitabobko.github.io/AeroSpace/goodness#disable-hide-app
 automatically-unhide-macos-hidden-apps = false
 
-# Possible values: (qwery|dvorak)
+# Possible values: (qwerty|dvorak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
 preset = 'qwerty'
