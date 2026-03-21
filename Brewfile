@@ -33,6 +33,7 @@ brew "lazygit"         # Git TUI
 brew "gh"              # GitHub CLI
 brew "glab"            # GitLab CLI
 brew "node"
+brew "bun"             # Fast JS runtime & package manager
 brew "go"
 brew "rust"
 brew "lua-language-server"
