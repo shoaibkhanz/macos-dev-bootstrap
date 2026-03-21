@@ -20,6 +20,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
 DRY_RUN=false
+SKIP_BREW=false
 
 # =============================================================================
 # Helper Functions
@@ -68,11 +69,16 @@ parse_args() {
                 DRY_RUN=true
                 warn "Dry-run mode enabled. No changes will be made."
                 ;;
+            --skip-brew)
+                SKIP_BREW=true
+                warn "Skipping Homebrew installation and packages."
+                ;;
             --help|-h)
-                echo "Usage: $0 [--dry-run] [--help]"
+                echo "Usage: $0 [--dry-run] [--skip-brew] [--help]"
                 echo ""
                 echo "Options:"
                 echo "  --dry-run    Preview changes without making them"
+                echo "  --skip-brew  Skip Homebrew install and brew bundle"
                 echo "  --help       Show this help message"
                 exit 0
                 ;;
@@ -442,8 +448,10 @@ main() {
     parse_args "$@"
     check_macos
 
-    install_homebrew
-    install_packages
+    if [ "$SKIP_BREW" = false ]; then
+        install_homebrew
+        install_packages
+    fi
     configure_macos
     backup_existing
     create_symlinks
