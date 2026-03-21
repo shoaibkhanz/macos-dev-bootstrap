@@ -75,7 +75,7 @@ brew "chafa"           # Image viewer for terminal
 # =============================================================================
 # Casks (GUI Applications)
 # =============================================================================
-cask "aerospace"       # Tiling window manager
+cask "nikitabobko/tap/aerospace"  # Tiling window manager
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
 cask "handy"           # Offline speech-to-text
