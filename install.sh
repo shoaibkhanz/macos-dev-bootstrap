@@ -195,34 +195,7 @@ create_symlinks() {
     # Ensure .config directory exists
     run mkdir -p "$HOME/.config"
 
-    # Helper: create symlink, skip if target already exists (non-symlink)
-    link_if_missing() {
-        local source="$1"
-        local target="$2"
-
-        if [ ! -e "$source" ]; then
-            warn "Source not found, skipping: $source"
-            return
-        fi
-
-        if [ -e "$target" ] && [ ! -L "$target" ]; then
-            info "Already exists (not a symlink), skipping: $target"
-            return
-        fi
-
-        # Create parent directory if needed
-        run mkdir -p "$(dirname "$target")"
-
-        # Remove existing symlink
-        if [ -L "$target" ]; then
-            run rm -f "$target"
-        fi
-
-        run ln -sf "$source" "$target"
-        success "Linked: $target -> $source"
-    }
-
-    # Helper function to create a symlink
+    # Helper: create or update a symlink (backs up existing non-symlink files first)
     link_file() {
         local source="$1"
         local target="$2"
@@ -256,14 +229,14 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
 
     # Claude Code: agents (skills, hooks, commands)
-    link_if_missing "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
-    link_if_missing "$SCRIPT_DIR/claude/agents/hooks" "$HOME/.agents/hooks"
-    link_if_missing "$SCRIPT_DIR/claude/agents/commands" "$HOME/.agents/commands"
+    link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
+    link_file "$SCRIPT_DIR/claude/agents/hooks" "$HOME/.agents/hooks"
+    link_file "$SCRIPT_DIR/claude/agents/commands" "$HOME/.agents/commands"
 
     # Claude Code: rules and commands
-    link_if_missing "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
-    link_if_missing "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
-    link_if_missing "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
+    link_file "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
+    link_file "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
+    link_file "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
 }
 
 configure_git() {
