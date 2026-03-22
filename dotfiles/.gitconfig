@@ -1,9 +1,3 @@
-[includeIf "gitdir:~/github-ch/"]
-	path = ~/github-ch/.gitconfig.ch
-
-[includeIf "gitdir:~/github-personal/"]
-	path = ~/github-personal/.gitconfig.personal
-
 [core]
 	excludesfile = ~/.gitignore_global
 	editor = nvim
