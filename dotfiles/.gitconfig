@@ -1,8 +1,8 @@
-[includeIf "gitdir:/Users/shoaib/github-ch/"]
-	path = /Users/shoaib/github-ch/.gitconfig.ch
+[includeIf "gitdir:~/github-ch/"]
+	path = ~/github-ch/.gitconfig.ch
 
-[includeIf "gitdir:/Users/shoaib/github-personal/"]
-	path = /Users/shoaib/github-personal/.gitconfig.personal
+[includeIf "gitdir:~/github-personal/"]
+	path = ~/github-personal/.gitconfig.personal
 
 [core]
 	excludesfile = ~/.gitignore_global
