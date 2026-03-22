@@ -73,116 +73,15 @@ export VISUAL="nvim"
 # ============================================================================
 # 4. ALIASES & FUNCTIONS
 # ============================================================================
-
-# --- General Shortcuts ---
-alias cls="clear"
-alias python="python3"
-
-# --- Config File Shortcuts ---
-alias zrc="nvim ~/.zshrc"      # Edit this file
-alias src="source ~/.zshrc"    # Reload this file
-alias sec="nvim ~/.secrets"    # Edit secrets file
-alias nv="nvim ~/.config/nvim" # Edit Neovim config
-alias sshnv="nvim ~/.ssh"      # Edit SSH config
-alias vi="nvim"                # Use Neovim as vi
-
-# --- Development Tools ---
-alias lz="lazygit"             # Terminal UI for git
-alias op="opencode"            # OpenCode AI assistant
-alias cl="claude"              # Claude CLI
-alias cld="claude --dangerously-skip-permissions"  # Claude without permission prompts
-
-# --- Python/UV (fast Python package manager) ---
-ur() { uv run "$@"; }          # Run Python scripts with uv
-alias urn="uv run nvim"        # Run Neovim through uv
-
-# --- AWS ---
-alias ad="awsume datascience"  # Assume AWS datascience role
-
-# --- Kubernetes (k8s) ---
-# Lazy-load kubectl completions to prevent shell hang when cluster is unreachable.
-# Completions are loaded on first use of kubectl/kubecolor/k commands.
-# Unalias any conflicting aliases (e.g., from previous shell state or plugins)
-unalias kt kga 2>/dev/null
-_kubectl_lazy_init() {
-  unfunction _kubectl_lazy_init kubectl kubecolor kt 2>/dev/null
-  source <(command kubectl completion zsh)
-  compdef kubecolor=kubectl
-  alias kt='kubecolor'  # Persist kt after lazy-load completes
-}
-kubectl() { _kubectl_lazy_init; command kubecolor "$@"; }
-kubecolor() { _kubectl_lazy_init; command kubecolor "$@"; }
-kt() { _kubectl_lazy_init; command kubecolor "$@"; }
-
-alias eks="eksctl"                    # EKS cluster management
-alias kns="kubecolor get ns"          # List namespaces
-alias kp="kubecolor get po"           # List pods
-kga() { kubecolor get all -n "$1"; }  # Get all resources in namespace
-
-# Ray cluster helpers (for ML workloads)
-hp() { export HEAD_POD=$(command kubectl get pods --selector=ray.io/node-type=head -o custom-columns=POD:metadata.name --no-headers); }
-kpo() { command kubectl port-forward "$HEAD_POD" "$@"; }
-
-# --- Docker ---
-alias db="docker build"
-alias dr="docker run"
-alias dp="docker push"
-
-# --- File Listing (eza - modern ls replacement) ---
-alias ls='eza --long --git -a --header --group'
-alias tree='eza --tree --level=2 --long -a --header --git'
-alias ll='eza --long --git --header --group --time-style=long-iso'
-alias la='eza --long --git --all --header --group --time-style=long-iso'
-alias l.='eza --long --git --header --group --time-style=long-iso .'
-alias lsr='eza --long --git --header --group --time-style=long-iso --recurse'
-
-# --- Tmux (terminal multiplexer) ---
-if [[ -x "$(command -v tmux)" ]]; then
-  alias tm="tmux"
-  alias tmc="nvim ~/.tmux.conf"       # Edit tmux config
-  alias tmka="tmux kill-session"      # Kill current session
-  alias tml="tmux list-sessions"      # List all sessions
-  tmk() { tmux kill-session -t "$1"; }  # Kill named session
-  tma() { tmux attach -t "$1"; }        # Attach to named session
-  tmn() { tmux new -s "$1"; }           # Create new named session
+# Modular alias files live in dotfiles/aliases/ alongside this .zshrc.
+# When .zshrc is symlinked (via install.sh), ${(%):-%N}:A resolves through
+# the symlink to the repo directory so the alias files are found automatically.
+_zshrc_aliases="${${(%):-%N}:A:h}/aliases"
+if [[ -d "$_zshrc_aliases" ]]; then
+  for _f in "$_zshrc_aliases"/*.zsh(N); do source "$_f"; done
+  unset _f
 fi
-
-# --- Git ---
-if [[ -x "$(command -v git)" ]]; then
-  # Basic commands
-  alias g='git'
-  alias ga='git add'
-  alias gc='git commit'
-  alias gcm='git commit -m'
-  alias gd='git diff'
-  alias gds='git diff --staged'
-  alias gl='git log'
-  alias gpl='git pull'
-  alias gps='git push'
-  alias gpf='git push --force-with-lease'  # Safe force push
-  alias gr='git remote'
-  alias grv='git remote -v'
-  alias gs='git status'
-
-  # Branch commands
-  alias gb='git branch'
-  alias gba='git branch -a'            # All branches (local + remote)
-  alias gbd='git branch -d'            # Delete branch (safe)
-  alias gbD='git branch -D'            # Delete branch (force)
-  alias gbm='git branch -m'            # Rename branch
-  alias gbn='git branch --no-merged'   # Branches not yet merged
-  alias gbo='git branch --remote --verbose'
-  alias gbs='git show-branch'
-
-  # Other commands
-  alias gch='git cherry'
-  alias gcl='git clone'
-  alias gco='git checkout'
-  alias gcp='git cherry-pick'
-  alias gcv='git commit --verbose'
-  alias gdt='git difftool'
-  alias glg='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --date=relative'
-fi
+unset _zshrc_aliases
 
 
 # ============================================================================
@@ -231,7 +130,7 @@ zinit light Aloxaf/fzf-tab                     # FZF-powered tab completion
 
 # --- Oh-My-Zsh Snippets ---
 # These provide additional aliases and completions from Oh-My-Zsh
-zinit snippet OMZP::git
+# zinit snippet OMZP::git  # Disabled: using custom aliases in aliases/git_aliases.zsh
 zinit snippet OMZP::sudo              # Press ESC twice to add sudo
 zinit snippet OMZP::aws
 # zinit snippet OMZP::kubectl  # Disabled: using custom lazy-load setup instead (see Kubernetes section)
