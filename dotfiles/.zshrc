@@ -337,4 +337,4 @@ fi
 # Starship, to keep the warning quiet and ensure the `cd` override wins.
 # Usage: `cd <partial-path>` jumps to the most-frecent matching directory.
 (( $+commands[zoxide] )) && eval "$(zoxide init --cmd cd zsh)"
-eval "$(_MARIMO_COMPLETE=zsh_source marimo)"
+(( $+commands[marimo] )) && eval "$(_MARIMO_COMPLETE=zsh_source marimo)"
