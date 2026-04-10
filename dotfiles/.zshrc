@@ -5,31 +5,19 @@
 # environment, aliases, functions, completions, and plugins.
 #
 # Structure:
-#   1. Instant Prompt (Powerlevel10k) - must be first
-#   2. Completion System Initialisation
-#   3. Environment Variables & PATH
-#   4. Aliases & Functions
-#   5. Tool Initialisations (zoxide, fzf, brew)
-#   6. Plugin Manager (Zinit) & Plugins
-#   7. Shell Options (history, keybindings, completion styling)
-#   8. External Tool Integrations
+#   1. Completion System Initialisation
+#   2. Environment Variables & PATH
+#   3. Aliases & Functions
+#   4. Tool Initialisations (zoxide, fzf, brew)
+#   5. Plugin Manager (Zinit) & Plugins
+#   6. Shell Options (history, keybindings, completion styling)
+#   7. External Tool Integrations
+#   8. Prompt (Starship) — initialised last so it wins over plugin prompts
 # ============================================================================
 
 
 # ============================================================================
-# 1. POWERLEVEL10K INSTANT PROMPT
-# ============================================================================
-# Enable instant prompt for faster shell startup. This caches the prompt
-# so it appears immediately while the rest of zshrc loads in the background.
-# IMPORTANT: Must stay at the top. Any code requiring user input (passwords,
-# confirmations) must go ABOVE this block.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-
-# ============================================================================
-# 2. COMPLETION SYSTEM
+# 1. COMPLETION SYSTEM
 # ============================================================================
 # Note: compinit is called AFTER fpath is fully populated (see section 6)
 # This ensures all completion directories are available.
@@ -37,7 +25,7 @@ autoload -Uz compinit
 
 
 # ============================================================================
-# 3. ENVIRONMENT VARIABLES & PATH
+# 2. ENVIRONMENT VARIABLES & PATH
 # ============================================================================
 # XDG Base Directory specification
 export XDG_CONFIG_HOME="$HOME/.config"
@@ -48,6 +36,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 typeset -U path
 path=(
   "$HOME/.local/bin"           # User-installed binaries (pipx, etc.)
+  "$HOME/.config/nvim"         # Neovim config scripts
   "$HOME/.cargo/bin"           # Rust/Cargo binaries
   "$HOME/go/bin"               # Go binaries
   "$HOME/.modular/bin"         # Modular/Mojo binaries
@@ -64,6 +53,7 @@ export CPPFLAGS="-I/opt/homebrew/opt/zlib/include"
 # Default editors
 export EDITOR="nvim"
 export VISUAL="nvim"
+export _ZO_DOCTOR=0  # zoxide init is already last; suppress false positive in subshells
 
 # API Keys - loaded from separate file for security
 # Edit secrets with: nvim ~/.secrets
@@ -71,26 +61,126 @@ export VISUAL="nvim"
 
 
 # ============================================================================
-# 4. ALIASES & FUNCTIONS
+# 3. ALIASES & FUNCTIONS
 # ============================================================================
-# Modular alias files live in dotfiles/aliases/ alongside this .zshrc.
-# When .zshrc is symlinked (via install.sh), ${(%):-%N}:A resolves through
-# the symlink to the repo directory so the alias files are found automatically.
-_zshrc_aliases="${${(%):-%N}:A:h}/aliases"
-if [[ -d "$_zshrc_aliases" ]]; then
-  for _f in "$_zshrc_aliases"/*.zsh(N); do source "$_f"; done
-  unset _f
+
+# --- General Shortcuts ---
+alias cls="clear"
+alias python="python3"
+
+# --- Config File Shortcuts ---
+alias zrc="nvim ~/.zshrc"      # Edit this file
+alias src="source ~/.zshrc"    # Reload this file
+alias sec="nvim ~/.secrets"    # Edit secrets file
+alias nv="nvim ~/.config/nvim" # Edit Neovim config
+alias sshnv="nvim ~/.ssh"      # Edit SSH config
+alias vi="nvim"                # Use Neovim as vi
+
+# --- Development Tools ---
+alias lz="lazygit"             # Terminal UI for git
+alias op="opencode"            # OpenCode AI assistant
+alias cc="claude"              # Claude CLI
+alias cx="codex"              # Claude CLI
+
+# --- Python/UV (fast Python package manager) ---
+ur() { uv run "$@"; }          # Run Python scripts with uv
+alias urn="uv run nvim"        # Run Neovim through uv
+
+# --- AWS ---
+alias ad="awsume datascience"  # Assume AWS datascience role
+
+# --- Kubernetes (k8s) ---
+# Lazy-load kubectl completions to prevent shell hang when cluster is unreachable.
+# Completions are loaded on first use of kubectl/kubecolor/k commands.
+_kubectl_lazy_init() {
+  unfunction _kubectl_lazy_init kubectl kubecolor k kt 2>/dev/null
+  source <(command kubectl completion zsh)
+  compdef kubecolor=kubectl
+  alias k='kubecolor'   # Persist k after lazy-load completes
+  alias kt='kubecolor'  # Persist kt after lazy-load completes
+}
+kubectl() { _kubectl_lazy_init; command kubecolor "$@"; }
+kubecolor() { _kubectl_lazy_init; command kubecolor "$@"; }
+k() { _kubectl_lazy_init; command kubecolor "$@"; }
+kt() { _kubectl_lazy_init; command kubecolor "$@"; }
+
+alias eks="eksctl"                    # EKS cluster management
+alias kns="kubecolor get ns"          # List namespaces
+alias kp="kubecolor get po"           # List pods
+kga() { kubecolor get all -n "$1"; }  # Get all resources in namespace
+
+# Ray cluster helpers (for ML workloads)
+hp() { export HEAD_POD=$(command kubectl get pods --selector=ray.io/node-type=head -o custom-columns=POD:metadata.name --no-headers); }
+kpo() { command kubectl port-forward "$HEAD_POD" "$@"; }
+
+# --- Docker ---
+alias db="docker build"
+alias dr="docker run"
+alias dp="docker push"
+
+# --- File Listing (eza - modern ls replacement) ---
+alias ls='eza --long --git -a --header --group'
+alias tree='eza --tree --level=2 --long -a --header --git'
+alias ll='eza --long --git --header --group --time-style=long-iso'
+alias la='eza --long --git --all --header --group --time-style=long-iso'
+alias l.='eza --long --git --header --group --time-style=long-iso .'
+alias lsr='eza --long --git --header --group --time-style=long-iso --recurse'
+
+# --- Tmux (terminal multiplexer) ---
+if [[ -x "$(command -v tmux)" ]]; then
+  alias tm="tmux"
+  alias tmc="nvim ~/.tmux.conf"       # Edit tmux config
+  alias tmka="tmux kill-session"      # Kill current session
+  alias tml="tmux list-sessions"      # List all sessions
+  tmk() { tmux kill-session -t "$1"; }  # Kill named session
+  tma() { tmux attach -t "$1"; }        # Attach to named session
+  tmn() { tmux new -s "$1"; }           # Create new named session
 fi
-unset _zshrc_aliases
+
+# --- Git ---
+if [[ -x "$(command -v git)" ]]; then
+  # Basic commands
+  alias g='git'
+  alias ga='git add'
+  alias gc='git commit'
+  alias gcm='git commit -m'
+  alias gd='git diff'
+  alias gds='git diff --staged'
+  alias gl='git log'
+  alias gpl='git pull'
+  alias gps='git push'
+  alias gpf='git push --force-with-lease'  # Safe force push
+  alias gr='git remote'
+  alias grv='git remote -v'
+  alias gs='git status'
+
+  # Branch commands
+  alias gb='git branch'
+  alias gba='git branch -a'            # All branches (local + remote)
+  alias gbd='git branch -d'            # Delete branch (safe)
+  alias gbD='git branch -D'            # Delete branch (force)
+  alias gbm='git branch -m'            # Rename branch
+  alias gbn='git branch --no-merged'   # Branches not yet merged
+  alias gbo='git branch --remote --verbose'
+  alias gbs='git show-branch'
+
+  # Other commands
+  alias gch='git cherry'
+  alias gcl='git clone'
+  alias gco='git checkout'
+  alias gcp='git cherry-pick'
+  alias gcv='git covert'
+  alias gdt='git difftool'
+  alias glg='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --date=relative'
+fi
 
 
 # ============================================================================
-# 5. TOOL INITIALISATIONS
+# 4. TOOL INITIALISATIONS
 # ============================================================================
-
-# Zoxide - smarter cd command (tracks frequently used directories)
-# Usage: cd <partial-path> will jump to most frequently used match
-(( $+commands[zoxide] )) && eval "$(zoxide init --cmd cd zsh)"
+# Note: Zoxide is initialised at the very end of this file (after Starship),
+# because zoxide's doctor expects its `cd` override to be the last thing set
+# up in the shell rc. Keep it that way or you'll get a nagging warning.
 
 # Homebrew shell environment (sets up brew paths and environment)
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
@@ -103,7 +193,7 @@ fi
 
 
 # ============================================================================
-# 6. PLUGIN MANAGER (ZINIT) & PLUGINS
+# 5. PLUGIN MANAGER (ZINIT) & PLUGINS
 # ============================================================================
 
 # Zinit installation directory
@@ -119,8 +209,7 @@ fi
 source "${ZINIT_HOME}/zinit.zsh"
 
 # --- Theme ---
-# Powerlevel10k - fast, flexible prompt theme
-zinit ice depth=1; zinit light romkatv/powerlevel10k
+# Prompt is handled by Starship (see section 8). No zinit theme needed.
 
 # --- Plugins ---
 zinit light zsh-users/zsh-syntax-highlighting  # Command syntax highlighting
@@ -150,7 +239,7 @@ compinit -C
 
 
 # ============================================================================
-# 7. SHELL OPTIONS
+# 6. SHELL OPTIONS
 # ============================================================================
 
 # --- Keybindings ---
@@ -189,12 +278,8 @@ zinit cdreplay -q
 
 
 # ============================================================================
-# 8. EXTERNAL TOOL INTEGRATIONS
+# 7. EXTERNAL TOOL INTEGRATIONS
 # ============================================================================
-
-# Powerlevel10k configuration
-# Run `p10k configure` to customise, or edit ~/.p10k.zsh directly
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Rust/Cargo environment
 [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
@@ -228,3 +313,28 @@ if (( $+commands[uv] )); then
   }
   compdef _uv_run_mod uv
 fi
+
+
+# ============================================================================
+# 8. PROMPT (STARSHIP)
+# ============================================================================
+# Cross-shell prompt, configured in ~/.config/starship.toml.
+# Initialised near the end so any plugin that sets PROMPT is overridden.
+#
+# Agentic-dev hints the config reads (set these in your agent launchers or
+# per-worktree .envrc to surface extra context in the prompt):
+#   AI_AGENT=claude|codex|cursor|...   → shows agent badge
+#   AGENT_TASK="refactor auth"         → shows current task label
+#   CLAUDECODE=1                       → auto-set by Claude Code sessions
+(( $+commands[starship] )) && eval "$(starship init zsh)"
+
+
+# ============================================================================
+# 9. ZOXIDE (must be LAST)
+# ============================================================================
+# Zoxide overrides `cd`. Its doctor check warns if anything initialised after
+# it might redefine `cd` or shell hooks — so we load it dead last, after
+# Starship, to keep the warning quiet and ensure the `cd` override wins.
+# Usage: `cd <partial-path>` jumps to the most-frecent matching directory.
+(( $+commands[zoxide] )) && eval "$(zoxide init --cmd cd zsh)"
+eval "$(_MARIMO_COMPLETE=zsh_source marimo)"

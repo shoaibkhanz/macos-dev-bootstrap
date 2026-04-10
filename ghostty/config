@@ -29,6 +29,11 @@ palette = 13=#d6acff
 palette = 14=#a4ffff
 palette = 15=#ffffff
 
+# Selection Colors - Light grey for visibility
+selection-background = d0d0d0
+selection-foreground = 000000
+selection-invert-fg-bg = false
+
 # Cursor Configuration
 cursor-style = block
 cursor-color = ffffff
@@ -54,7 +59,7 @@ macos-titlebar-style = transparent
 # Key Bindings Configuration
 
 # Global toggle for quick terminal
-keybind = global:ctrl+grave_accent=toggle_quick_terminal
+keybind = global:ctrl+z=toggle_quick_terminal
 
 # Config management
 keybind = cmd+s>r=reload_config

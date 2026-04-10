@@ -45,6 +45,8 @@ return {
         spell = false, -- sets vim.opt.spell
         signcolumn = "yes", -- sets vim.opt.signcolumn to yes
         wrap = false, -- sets vim.opt.wrap
+        textwidth = 79, -- sets vim.opt.textwidth
+        fillchars = { eob = " ", foldsep = " " }, -- override v6 defaults that need multi-cell fillchar support
       },
       g = { -- vim.g.<key>
         -- configure global vim variables (vim.g)
@@ -81,9 +83,13 @@ return {
         
         -- Disable the default <leader>n new file mapping to avoid conflicts with neotest
         ["<Leader>n"] = false,
-        -- Add full git blame mapping
-        ["<Leader>gb"] = {function() require("gitsigns").blame() end,
-        desc = "Git Blame (full)"}
+        -- Git blame mappings
+        -- ["<Leader>gb"] = { function() require("gitsigns").blame() end, desc = "Git Blame (full)" },
+        ["<Leader>gb"] = { "<cmd>DiffviewFileHistory %<cr>", desc = "Git Blame (file history)" },
+        ["<Leader>gB"] = {
+          function() require("gitsigns").toggle_current_line_blame() end,
+          desc = "Toggle inline blame",
+        },
       },
     },
   },

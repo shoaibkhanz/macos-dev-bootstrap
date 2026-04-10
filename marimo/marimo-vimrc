@@ -1,0 +1,20 @@
+" Marimo vimrc — CodeMirror vim mode subset
+" Only supports: imap/nmap/vmap, inoremap/nnoremap/vnoremap, unmap
+
+" === Escape mappings (from better-escape defaults) ===
+imap jj <Esc>
+imap jk <Esc>
+
+" === Visual line navigation (don't skip wrapped lines) ===
+nmap j gj
+nmap k gk
+
+" === Yank to end of line (consistent with D and C) ===
+nmap Y y$
+
+" === Keep cursor centered when scrolling ===
+nmap n nzz
+nmap N Nzz
+
+" === Quick save ===
+nmap <Space>w :w<CR>

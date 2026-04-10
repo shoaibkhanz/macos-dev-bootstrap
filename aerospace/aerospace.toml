@@ -1,19 +1,23 @@
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
-config-version = 2
+# You can use it to add commands that run after login to macOS user session.
+# 'start-at-login' needs to be 'true' for 'after-login-command' to work
+# Available commands: https://nikitabobko.github.io/AeroSpace/commands
+after-login-command = []
 
 # You can use it to add commands that run after AeroSpace startup.
-# Available commands: https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = [
-    # 'exec-and-forget sketchybar',
-    'exec-and-forget borders active_color=0xffffffff inactive_color=0x00000000 width=4.0'
-]
+# 'after-startup-command' is run after 'after-login-command'
+# Available commands : https://nikitabobko.github.io/AeroSpace/commands
+# after-startup-command = [
+#     # 'exec-and-forget sketchybar',
+#     'exec-and-forget borders active_color=0xffffffff inactive_color=0x00000000 width=4.0'
+# ]
 
 # Notify sketchybar when workspace changes
-exec-on-workspace-change = ['/bin/bash', '-c',
-  '/Users/shoaib/.config/sketchybar/plugins/aerospace.sh'
-]
+# exec-on-workspace-change = ['/bin/bash', '-c',
+#   '/Users/shoaib.khan/.config/sketchybar/plugins/aerospace.sh'
+# ]
 
 # Start AeroSpace at login
 start-at-login = true
@@ -46,9 +50,9 @@ on-focus-changed = 'move-mouse window-lazy-center'
 # You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
 # Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-alt-h key
 # Also see: https://nikitabobko.github.io/AeroSpace/goodness#disable-hide-app
-automatically-unhide-macos-hidden-apps = false
+automatically-unhide-macos-hidden-apps = true
 
-# Possible values: (qwerty|dvorak)
+# Possible values: (qwery|dvorak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
 preset = 'qwerty'
@@ -101,12 +105,16 @@ outer.right =      5
 # See: https://nikitabobko.github.io/AeroSpace/commands#layout
 alt-slash = 'layout tiles horizontal vertical'
 alt-comma = 'layout accordion horizontal vertical'
+alt-ctrl-f = 'layout tiling'
+alt-ctrl-shift-f = 'layout floating'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#focus
 alt-h = 'focus left'
 alt-j = 'focus down'
 alt-k = 'focus up'
 alt-l = 'focus right'
+alt-period = 'focus --boundaries-action wrap-around-the-workspace dfs-next'
+alt-shift-period = 'focus --boundaries-action wrap-around-the-workspace dfs-prev'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#move
 alt-shift-h = 'move left'
@@ -157,6 +165,127 @@ alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
 
+
+# ============================================
+# Floating rules for apps that don't tile well
+# ============================================
+
+# Finder - has many window types (dialogs, Quick Look, etc.) that break tiling
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout tiling'
+
+# System Settings / System Preferences
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
+run = 'layout tiling'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.systemsettings'
+run = 'layout tiling'
+
+# Common VPN clients - add your work VPN app-id here
+# Run `aerospace list-apps` while VPN is open to find the exact ID
+# [[on-window-detected]]
+# if.app-id = 'com.amazon.awsvpnclient'
+# run = 'layout floating'
+
+# [[on-window-detected]]
+# if.app-id = 'com.cisco.anyconnect.gui'
+# run = 'layout floating'
+
+# Archive Utility (extracting files)
+[[on-window-detected]]
+if.app-id = 'com.apple.archiveutility'
+run = 'layout floating'
+
+# Calculator
+[[on-window-detected]]
+if.app-id = 'com.apple.calculator'
+run = 'layout floating'
+
+# Keychain Access
+[[on-window-detected]]
+if.app-id = 'com.apple.keychainaccess'
+run = 'layout floating'
+
+# Activity Monitor
+[[on-window-detected]]
+if.app-id = 'com.apple.ActivityMonitor'
+run = 'layout tiling'
+
+# App Store
+[[on-window-detected]]
+if.app-id = 'com.apple.AppStore'
+run = 'layout tiling'
+
+# Preview (for quick viewing)
+[[on-window-detected]]
+if.app-id = 'com.apple.Preview'
+run = 'layout tiling'
+
+# 1Password and other password managers
+[[on-window-detected]]
+if.app-id = 'com.1password.1password'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.agilebits.onepassword7'
+run = 'layout floating'
+
+# Zoom - meeting controls should float
+[[on-window-detected]]
+if.app-id = 'us.zoom.xos'
+run = 'layout floating'
+
+# Utility / menu-bar style apps that are better as floating windows
+[[on-window-detected]]
+if.app-id = 'com.raycast.macos'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'me.damir.dropover-mac'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.devuap.beautyshotapp'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'net.rafaelconde.Hand-Mirror'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'leits.MeetingBar'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'org.herf.Flux'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.if.Amphetamine'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.imagestudiopro.ScreenBrush'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.pais.handy'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.superultra.Homerow'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.example.keyviz'
+run = 'layout floating'
+
+# ============================================
+# Workspace assignment rules
+# ============================================
 
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
