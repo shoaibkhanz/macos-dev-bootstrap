@@ -1,11 +1,10 @@
-[core]
-	excludesfile = ~/.gitignore_global
-	editor = nvim
+# Reference .gitconfig — NOT symlinked by install.sh.
+# Configure user.name and user.email manually per machine:
+#   git config --global user.name "Your Name"
+#   git config --global user.email "you@example.com"
 
 [init]
 	defaultBranch = main
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+[core]
+	excludesfile = ~/.gitignore_global
+	editor = nvim

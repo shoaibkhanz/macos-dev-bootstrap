@@ -1,0 +1,56 @@
+# ============================================================================
+# LazyGit — Yugen-matched theme
+# Palette sourced from bettervim/yugen.nvim
+# ============================================================================
+
+gui:
+  nerdFontsVersion: "3"
+  showBottomLine: false
+  border: rounded
+
+  theme:
+    # Active panel border — Yugen primary accent (warm orange/peach)
+    activeBorderColor:
+      - "#FFBE89"
+      - bold
+
+    # Inactive panel borders — Yugen comment gray
+    inactiveBorderColor:
+      - "#505050"
+
+    # Search-mode border — Yugen warning yellow
+    searchingActiveBorderColor:
+      - "#FFF2AF"
+      - bold
+
+    # Bottom-bar options text — Yugen dim gray
+    optionsTextColor:
+      - "#696969"
+
+    # Selected line background — Yugen cursorline
+    selectedLineBgColor:
+      - "#303030"
+
+    # Selected range (visual mode) — same cursorline tone
+    selectedRangeBgColor:
+      - "#303030"
+
+    # Cherry-picked commits — Yugen success green
+    cherryPickedCommitFgColor:
+      - "#7EAB8E"
+    cherryPickedCommitBgColor:
+      - "#151515"
+
+    # Marked base commit — Yugen warning yellow on near-black
+    markedBaseCommitFgColor:
+      - "#FFF2AF"
+    markedBaseCommitBgColor:
+      - "#151515"
+
+    # Unstaged changes — Yugen error red
+    unstagedChangesColor:
+      - "#F57A7A"
+
+    # Default foreground — Yugen normal text
+    defaultFgColor:
+      - "#D4D4D4"

@@ -1,35 +1,403 @@
-# Get editor completions based on the config schema
+# ============================================================================
+# Starship Prompt Configuration
+# ============================================================================
+# Modern, feature-full prompt that stays out of the way.
+#
+# Layout:
+#   [blank line]
+#   dir  git_branch  git_status  ────────────────────  lang  k8s  aws  dur
+#   ❯
+#
+# Principles:
+#   - Segments only appear when relevant (e.g. python version in python repos)
+#   - Two lines: info on top, clean `❯` on bottom — type on an empty line
+#   - Catppuccin Mocha palette — matches most modern terminal themes
+#   - Docs: https://starship.rs/config/
+#   - Presets:  https://starship.rs/presets/
+# ============================================================================
+
 "$schema" = 'https://starship.rs/config-schema.json'
 
-# Inserts a blank line between shell prompts
+# ----------------------------------------------------------------------------
+# Global layout
+# ----------------------------------------------------------------------------
+# Designed for agentic dev: the things you need to identify WHICH shell /
+# WHICH worktree / WHICH agent is on the LEFT, where your eyes land first
+# when flipping through tmux panes.
+#
+#   [host on SSH] [agent badge] [agent task] [dir] [worktree] [git] … [jobs] [lang] [k8s] [aws] [dur]
+#   ❯
+#
+# $fill inserts a flexible gap pushing everything after it to the right edge.
+format = """
+$hostname\
+${custom.agent}\
+${custom.agent_task}\
+$directory\
+${custom.worktree}\
+$git_branch\
+$git_status\
+$git_state\
+$fill\
+$jobs\
+$python\
+$nodejs\
+$golang\
+$rust\
+$java\
+$bun\
+$deno\
+$lua\
+$docker_context\
+$kubernetes\
+${custom.aws}\
+${custom.gcloud}\
+$terraform\
+$nix_shell\
+$direnv\
+$cmd_duration\
+$line_break\
+$character"""
+
+# Blank line before each prompt (mirrors p10k's PROMPT_ADD_NEWLINE=true).
 add_newline = true
 
-# Replace the '❯' symbol in the prompt with '➜'
-[character] # The name of the module we are configuring is 'character'
-success_symbol = '[⚡](bold green)'
+# Use Catppuccin Mocha palette defined below.
+palette = "catppuccin_mocha"
 
-# Disable the package module, hiding it from the prompt completely
-[package]
+# ----------------------------------------------------------------------------
+# Palette: Catppuccin Mocha
+# ----------------------------------------------------------------------------
+# Reference these colours by name in any module via `style = "peach"` etc.
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo  = "#f2cdcd"
+pink      = "#f5c2e7"
+mauve     = "#cba6f7"
+red       = "#f38ba8"
+maroon    = "#eba0ac"
+peach     = "#fab387"
+yellow    = "#f9e2af"
+green     = "#a6e3a1"
+teal      = "#94e2d5"
+sky       = "#89dceb"
+sapphire  = "#74c7ec"
+blue      = "#89b4fa"
+lavender  = "#b4befe"
+text      = "#cdd6f4"
+subtext1  = "#bac2de"
+subtext0  = "#a6adc8"
+overlay2  = "#9399b2"
+overlay1  = "#7f849c"
+overlay0  = "#6c7086"
+surface2  = "#585b70"
+surface1  = "#45475a"
+surface0  = "#313244"
+base      = "#1e1e2e"
+mantle    = "#181825"
+crust     = "#11111b"
+
+# ----------------------------------------------------------------------------
+# Directory
+# ----------------------------------------------------------------------------
+[directory]
+style = "bold blue"
+format = "[ $path]($style)[$read_only]($read_only_style) "
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = true         # inside a git repo, root becomes the repo root
+read_only = " 󰌾"
+read_only_style = "red"
+
+# Replace common directory names with icons. Add your own here.
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Projects"  = " "
+"Developer" = " "
+"~"         = " "
+
+# ----------------------------------------------------------------------------
+# Git
+# ----------------------------------------------------------------------------
+[git_branch]
+symbol = " "
+style = "mauve"
+format = "[on ](overlay1)[$symbol$branch(:$remote_branch)]($style) "
+
+[git_status]
+style = "peach"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+ahead      = "⇡${count}"
+behind     = "⇣${count}"
+diverged   = "⇕⇡${ahead_count}⇣${behind_count}"
+conflicted = "="
+untracked  = "?${count}"
+modified   = "!${count}"
+staged     = "+${count}"
+renamed    = "»${count}"
+deleted    = "✘${count}"
+stashed    = "≡${count}"
+
+[git_state]
+style = "red"
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+
+# ----------------------------------------------------------------------------
+# Fill — pushes right-side segments to the right edge
+# ----------------------------------------------------------------------------
+[fill]
+symbol = " "
+
+# ----------------------------------------------------------------------------
+# Language runtimes (auto-hide outside matching projects)
+# ----------------------------------------------------------------------------
+[python]
+symbol = " "
+style = "yellow"
+format = '[$symbol($version )(\($virtualenv\) )]($style)'
+detect_extensions = ["py"]
+detect_files = [
+  "pyproject.toml", "requirements.txt", "setup.py",
+  "Pipfile", "uv.lock", ".python-version",
+]
+detect_folders = [".venv", "venv"]
+
+[nodejs]
+symbol = " "
+style = "green"
+format = "[$symbol($version) ]($style)"
+detect_extensions = ["js", "mjs", "cjs", "ts", "mts", "cts"]
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+# Note: `node_modules` is intentionally NOT in detect_folders — it shows up
+# as leftover junk in too many random places (including $HOME).
+
+[golang]
+symbol = " "
+style = "sapphire"
+format = "[$symbol($version) ]($style)"
+
+[rust]
+symbol = " "
+style = "peach"
+format = "[$symbol($version) ]($style)"
+
+[java]
+symbol = " "
+style = "red"
+format = "[$symbol($version) ]($style)"
+
+[bun]
+symbol = "󰳗 "
+style = "peach"
+format = "[$symbol($version) ]($style)"
+
+[deno]
+symbol = " "
+style = "teal"
+format = "[$symbol($version) ]($style)"
+
+[lua]
+symbol = " "
+style = "blue"
+format = "[$symbol($version) ]($style)"
+
+# ----------------------------------------------------------------------------
+# Cloud & infrastructure
+# ----------------------------------------------------------------------------
+[docker_context]
+symbol = " "
+style = "blue"
+format = "[$symbol$context ]($style)"
+only_with_files = true            # only show when Dockerfile / compose.yml nearby
+
+[kubernetes]
+symbol = "󱃾 "
+style = "sky"
+format = '[$symbol$context( \($namespace\)) ]($style)'
+disabled = false
+# Only light up inside directories that are obviously k8s projects.
+# Deliberately NOT matching `.kube` (lives in $HOME), `helm`/`kubernetes`
+# (too-generic folder names), or `deployment.yaml` alone (too common).
+detect_files = ["Chart.yaml", "skaffold.yaml", "kustomization.yaml"]
+detect_folders = ["k8s"]
+# Shorten EKS ARNs to just the cluster name
+[[kubernetes.contexts]]
+context_pattern = "arn:aws:eks:.*:.*:cluster/(?P<cluster>.*)"
+context_alias   = "$cluster"
+
+# The built-in [aws] and [gcloud] modules have no directory-based filtering,
+# so they would light up in $HOME and every non-cloud shell whenever AWS env
+# vars / gcloud's active config are set globally. Disable them here and use
+# the custom.aws / custom.gcloud modules (defined further below) instead,
+# which restrict display to directories that actually look like IaC / cloud
+# projects.
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[terraform]
+symbol = "󱁢 "
+style = "mauve"
+format = '[$symbol$workspace ]($style)'
+
+[nix_shell]
+symbol = " "
+style = "sky"
+format = '[$symbol$state ]($style)'
+
+[direnv]
+symbol = " "
+style = "yellow"
+format = '[$symbol$loaded/$allowed ]($style)'
+disabled = false
+
+# ----------------------------------------------------------------------------
+# Command duration — only show when the last command took > 2 seconds
+# ----------------------------------------------------------------------------
+[cmd_duration]
+min_time = 2_000
+style = "yellow"
+format = "[󱎫 $duration ]($style)"
+
+# ----------------------------------------------------------------------------
+# Prompt character (line 2)
+# ----------------------------------------------------------------------------
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol   = "[❯](bold red)"
+vimcmd_symbol  = "[❮](bold green)"
+
+# ----------------------------------------------------------------------------
+# Hostname — only when SSH'd into a remote box (useful when agents spin up
+# cloud dev boxes or you're pair-driving an agent on a remote host)
+# ----------------------------------------------------------------------------
+[hostname]
+ssh_only = true
+ssh_symbol = " "
+style = "bold teal"
+format = "[$ssh_symbol$hostname ]($style)"
+disabled = false
+
+# ----------------------------------------------------------------------------
+# Jobs — number of background processes (parallel agents, watchers, etc.)
+# ----------------------------------------------------------------------------
+[jobs]
+symbol = "󰒲 "
+style = "bold red"
+format = "[$symbol$number ]($style)"
+number_threshold = 1
+symbol_threshold = 1
+
+# ----------------------------------------------------------------------------
+# Agentic-development custom modules
+# ----------------------------------------------------------------------------
+# Launch your agents with these env vars to surface context in the prompt:
+#   AI_AGENT=claude                    → explicit badge
+#   AGENT_TASK="refactor auth layer"   → task label next to the badge
+#   CLAUDECODE=1                       → auto-set by Claude Code
+#   CURSOR_AGENT=1 / CODEX_SESSION_ID  → auto-detected for other agents
+#
+# Tip: put `export AGENT_TASK="…"` in a worktree's `.envrc` (direnv) so each
+# worktree carries its own task label without you having to remember it.
+
+[custom.agent]
+description = "Active AI coding agent"
+when = '[ -n "$AI_AGENT" ] || [ -n "$CLAUDECODE" ] || [ -n "$CURSOR_AGENT" ] || [ -n "$CODEX_SESSION_ID" ]'
+command = 'echo "${AI_AGENT:-${CLAUDECODE:+claude}${CURSOR_AGENT:+cursor}${CODEX_SESSION_ID:+codex}}"'
+symbol = "󰚩 "
+style = "bold mauve"
+format = "[$symbol$output ]($style)"
+shell = ["sh", "--norc", "--noprofile"]
+
+[custom.agent_task]
+description = "Current agent task label (\\$AGENT_TASK)"
+when = '[ -n "$AGENT_TASK" ]'
+command = 'printf "%s" "$AGENT_TASK"'
+symbol = "󰄬 "
+style = "italic subtext0"
+format = "[$symbol$output ]($style)"
+shell = ["sh", "--norc", "--noprofile"]
+
+[custom.worktree]
+description = "Git worktree name when inside a linked worktree"
+when = 'git rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ "$(git rev-parse --git-common-dir 2>/dev/null)" != "$(git rev-parse --git-dir 2>/dev/null)" ]'
+command = 'basename "$(git rev-parse --show-toplevel 2>/dev/null)"'
+symbol = "󱓋 "
+style = "lavender"
+format = "[$symbol$output ]($style)"
+shell = ["sh", "--norc", "--noprofile"]
+
+# ----------------------------------------------------------------------------
+# Cloud context modules (directory-scoped replacements for [aws] / [gcloud])
+# ----------------------------------------------------------------------------
+# These only show when BOTH:
+#   1. You have a relevant env var / active config, AND
+#   2. The current directory contains cloud / IaC project markers
+#
+# The marker list is intentionally narrow — these should feel quiet, not
+# chatty. Add more markers if your workflow needs them.
+
+[custom.aws]
+description = "AWS profile/region — only in cloud/IaC directories"
+when = '''test -n "$AWS_PROFILE$AWS_VAULT$AWS_REGION" && test -n "$(ls -d .aws Dockerfile docker-compose.yml docker-compose.yaml serverless.yml template.yaml template.yml samconfig.toml cdk.json *.tf 2>/dev/null)"'''
+command = '''
+profile="${AWS_VAULT:-$AWS_PROFILE}"
+region="$AWS_REGION"
+case "$region" in
+  us-east-1) region=va ;;
+  us-west-2) region=or ;;
+  eu-west-1) region=ie ;;
+  ap-southeast-1) region=sg ;;
+esac
+if [ -n "$profile" ] && [ -n "$region" ]; then
+  printf "%s (%s)" "$profile" "$region"
+elif [ -n "$profile" ]; then
+  printf "%s" "$profile"
+else
+  printf "(%s)" "$region"
+fi
+'''
+symbol = " "
+style = "peach"
+format = "[$symbol$output ]($style)"
+shell = ["sh", "--norc", "--noprofile"]
+
+[custom.gcloud]
+description = "GCP active project — only in cloud/IaC directories"
+# Reads gcloud's active config file directly (fast, ~2 file reads per prompt)
+# rather than shelling out to `gcloud config get-value` which is ~300ms.
+when = '''test -n "$(ls -d app.yaml cloudbuild.yaml .gcloudignore Dockerfile *.tf 2>/dev/null)"'''
+command = '''
+if [ -n "$GOOGLE_CLOUD_PROJECT" ]; then
+  printf "%s" "$GOOGLE_CLOUD_PROJECT"
+else
+  cfg="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/active_config"
+  [ -r "$cfg" ] || exit 0
+  active=$(cat "$cfg")
+  [ -n "$active" ] || exit 0
+  awk -F= '/^project[[:space:]]*=/ {gsub(/ /,"",$2); print $2; exit}' \
+    "${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/configurations/config_$active" 2>/dev/null
+fi
+'''
+symbol = "󱇶 "
+style = "blue"
+format = "[$symbol$output ]($style)"
+shell = ["sh", "--norc", "--noprofile"]
+
+# ----------------------------------------------------------------------------
+# Explicitly disabled — keep the prompt uncluttered
+# ----------------------------------------------------------------------------
+[username]
 disabled = true
 
 [battery]
-full_symbol = '🔋 '
-charging_symbol = '⚡️ '
-discharging_symbol = '💀 '
+disabled = true
 
-[[battery.display]]
-threshold = 10
-style = 'bold red'
+[package]
+disabled = true
 
-# Configure the Python module to display the current Python version
-[python]
-symbol = "🐍 "
-
-# Configure the Rust module to display the current Rust version
-[rust]
-symbol = " "
-
-[git_status]
-ahead = '⇡${count}'
-diverged = '⇕⇡${ahead_count}⇣${behind_count}'
-behind = '⇣${count}'
+[time]
+disabled = true

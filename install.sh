@@ -160,11 +160,12 @@ backup_existing() {
     local files_to_backup=(
         "$HOME/.zshrc"
         "$HOME/.tmux.conf"
-        "$HOME/.gitconfig"
         "$HOME/.config/nvim"
         "$HOME/.config/aerospace"
         "$HOME/.config/ghostty"
         "$HOME/.config/starship.toml"
+        "$HOME/.config/lazygit"
+        "$HOME/.config/marimo"
     )
 
     local backup_needed=false
@@ -187,6 +188,36 @@ backup_existing() {
     else
         info "No existing configs to backup (or already symlinked)"
     fi
+}
+
+install_marimo_config() {
+    info "Installing Marimo configuration..."
+
+    local marimo_dir="$HOME/.config/marimo"
+
+    if [ ! -d "$SCRIPT_DIR/marimo" ]; then
+        warn "Marimo config not found in repo, skipping"
+        return
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}[DRY-RUN]${NC} mkdir -p $marimo_dir"
+        echo -e "${YELLOW}[DRY-RUN]${NC} cp marimo-code.css, marimo-vimrc -> $marimo_dir/"
+        echo -e "${YELLOW}[DRY-RUN]${NC} sed s|__HOME__|$HOME|g marimo.toml -> $marimo_dir/marimo.toml"
+        return
+    fi
+
+    mkdir -p "$marimo_dir"
+
+    # Copy CSS and vimrc directly
+    [ -f "$SCRIPT_DIR/marimo/marimo-code.css" ] && \
+        cp "$SCRIPT_DIR/marimo/marimo-code.css" "$marimo_dir/marimo-code.css"
+    [ -f "$SCRIPT_DIR/marimo/marimo-vimrc" ] && \
+        cp "$SCRIPT_DIR/marimo/marimo-vimrc" "$marimo_dir/marimo-vimrc"
+
+    # Copy marimo.toml with __HOME__ replaced by actual home directory
+    sed "s|__HOME__|$HOME|g" "$SCRIPT_DIR/marimo/marimo.toml" > "$marimo_dir/marimo.toml"
+    success "Marimo config installed (paths resolved for $HOME)"
 }
 
 create_symlinks() {
@@ -221,12 +252,12 @@ create_symlinks() {
     # Create symlinks for each config
     link_file "$SCRIPT_DIR/dotfiles/.zshrc" "$HOME/.zshrc"
     link_file "$SCRIPT_DIR/dotfiles/.tmux.conf" "$HOME/.tmux.conf"
-    link_file "$SCRIPT_DIR/dotfiles/.gitconfig" "$HOME/.gitconfig"
     link_file "$SCRIPT_DIR/dotfiles/.gitignore_global" "$HOME/.gitignore_global"
     link_file "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
     link_file "$SCRIPT_DIR/aerospace" "$HOME/.config/aerospace"
     link_file "$SCRIPT_DIR/ghostty" "$HOME/.config/ghostty"
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
+    link_file "$SCRIPT_DIR/lazygit" "$HOME/.config/lazygit"
 
     # Claude Code: agents (skills, hooks, commands)
     link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
@@ -240,12 +271,12 @@ create_symlinks() {
 }
 
 configure_git() {
-    info "Verifying git global gitignore..."
-    # excludesfile is set in .gitconfig (symlinked from this repo)
-    # Only set via git config if not already correct
+    info "Configuring git global gitignore..."
+    # Only set the global gitignore — .gitconfig is NOT symlinked so you can
+    # configure user.name / user.email per machine (personal vs work).
     local current
     current="$(git config --global core.excludesfile 2>/dev/null)"
-    if [[ "$current" != *"gitignore_global"* ]]; then
+    if [[ "$current" != "$HOME/.gitignore_global" ]]; then
         run git config --global core.excludesfile "$HOME/.gitignore_global"
     fi
     success "Git configured to use ~/.gitignore_global"
@@ -399,6 +430,9 @@ print_post_install() {
     echo "  5. Create your secrets file:"
     echo "     cp ~/.secrets.example ~/.secrets"
     echo "     nvim ~/.secrets"
+    echo "  6. Marimo AI features need API keys in ~/.secrets:"
+    echo "     export ANTHROPIC_API_KEY=\"...\""
+    echo "     export OPENAI_API_KEY=\"...\""
     echo ""
     if [ "$DRY_RUN" = true ]; then
         echo -e "${YELLOW}This was a dry run. No changes were made.${NC}"
@@ -428,6 +462,7 @@ main() {
     configure_macos
     backup_existing
     create_symlinks
+    install_marimo_config
     configure_git
     configure_zsh
     install_tpm
