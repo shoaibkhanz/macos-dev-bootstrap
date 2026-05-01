@@ -61,6 +61,8 @@ brew "luarocks"        # Lua package manager
 brew "luajit"          # Lua 5.1 for image.nvim
 brew "tree-sitter"
 brew "graphviz"        # Graph/diagram generation
+brew "d2"              # Diagram renderer (used by diagram.nvim)
+brew "plantuml"        # UML/diagram renderer (used by diagram.nvim)
 brew "python@3.13"     # Python for neovim provider
 brew "ruby"            # Ruby for neovim provider
 brew "tectonic"        # Modern LaTeX engine
