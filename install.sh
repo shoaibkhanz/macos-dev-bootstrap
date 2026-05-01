@@ -7,7 +7,7 @@
 # Preview changes with: ./install.sh --dry-run
 # =============================================================================
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -16,11 +16,15 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Fail loudly with line number on any uncaught error
+trap 'echo -e "${RED}[ERROR]${NC} Installation failed at line ${LINENO}"; exit 1' ERR
+
 # Script directory (where this script lives)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
 DRY_RUN=false
 SKIP_BREW=false
+WORK_MODE=false
 
 # =============================================================================
 # Helper Functions
@@ -73,12 +77,17 @@ parse_args() {
                 SKIP_BREW=true
                 warn "Skipping Homebrew installation and packages."
                 ;;
+            --work)
+                WORK_MODE=true
+                warn "Work mode enabled. Personal-only packages will be skipped."
+                ;;
             --help|-h)
-                echo "Usage: $0 [--dry-run] [--skip-brew] [--help]"
+                echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--help]"
                 echo ""
                 echo "Options:"
                 echo "  --dry-run    Preview changes without making them"
                 echo "  --skip-brew  Skip Homebrew install and brew bundle"
+                echo "  --work       Skip personal-only packages (e.g. obsidian, handy)"
                 echo "  --help       Show this help message"
                 exit 0
                 ;;
@@ -94,26 +103,38 @@ install_homebrew() {
     info "Checking for Homebrew..."
     if command -v brew &> /dev/null; then
         success "Homebrew already installed"
-    else
-        info "Installing Homebrew..."
-        run /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-        # Add Homebrew to PATH for this session
-        if [[ -f "/opt/homebrew/bin/brew" ]]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        fi
-        success "Homebrew installed"
+        return
     fi
+
+    info "Installing Homebrew..."
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}[DRY-RUN]${NC} curl ...Homebrew/install/HEAD/install.sh | bash"
+        return
+    fi
+
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    # Add Homebrew to PATH for this session
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+    success "Homebrew installed"
 }
 
 install_packages() {
     info "Installing packages from Brewfile..."
-    if [ -f "$SCRIPT_DIR/Brewfile" ]; then
-        run brew bundle --file="$SCRIPT_DIR/Brewfile"
-        success "Packages installed"
-    else
+    if [ ! -f "$SCRIPT_DIR/Brewfile" ]; then
         warn "Brewfile not found, skipping package installation"
+        return
     fi
+
+    if [ "$WORK_MODE" = true ]; then
+        # HOMEBREW_-prefixed because brew bundle scrubs other env vars.
+        run env HOMEBREW_BUNDLE_WORK=1 brew bundle --file="$SCRIPT_DIR/Brewfile"
+    else
+        run brew bundle --file="$SCRIPT_DIR/Brewfile"
+    fi
+    success "Packages installed"
 }
 
 configure_macos() {
@@ -160,12 +181,19 @@ backup_existing() {
     local files_to_backup=(
         "$HOME/.zshrc"
         "$HOME/.tmux.conf"
+        "$HOME/.gitignore_global"
         "$HOME/.config/nvim"
         "$HOME/.config/aerospace"
         "$HOME/.config/ghostty"
         "$HOME/.config/starship.toml"
         "$HOME/.config/lazygit"
         "$HOME/.config/marimo"
+        "$HOME/.claude/settings.json"
+        "$HOME/.claude/rules"
+        "$HOME/.claude/commands"
+        "$HOME/.agents/skills"
+        "$HOME/.agents/hooks"
+        "$HOME/.agents/commands"
     )
 
     local backup_needed=false
@@ -180,7 +208,12 @@ backup_existing() {
         run mkdir -p "$BACKUP_DIR"
         for file in "${files_to_backup[@]}"; do
             if [ -e "$file" ] && [ ! -L "$file" ]; then
-                run cp -r "$file" "$BACKUP_DIR/"
+                # Preserve path structure under BACKUP_DIR to avoid basename
+                # collisions (e.g. .claude/commands vs .agents/commands).
+                local rel="${file#$HOME/}"
+                local dest="$BACKUP_DIR/$rel"
+                run mkdir -p "$(dirname "$dest")"
+                run cp -r "$file" "$dest"
                 info "Backed up: $file"
             fi
         done
@@ -270,16 +303,39 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
 }
 
-configure_git() {
-    info "Configuring git global gitignore..."
-    # Only set the global gitignore — .gitconfig is NOT symlinked so you can
-    # configure user.name / user.email per machine (personal vs work).
+git_config_set() {
+    # Set a global git config key only if its current value differs.
+    # Keeps dry-run output minimal and avoids redundant writes.
+    local key="$1"
+    local value="$2"
     local current
-    current="$(git config --global core.excludesfile 2>/dev/null)"
-    if [[ "$current" != "$HOME/.gitignore_global" ]]; then
-        run git config --global core.excludesfile "$HOME/.gitignore_global"
+    current="$(git config --global "$key" 2>/dev/null || true)"
+    if [[ "$current" != "$value" ]]; then
+        run git config --global "$key" "$value"
     fi
-    success "Git configured to use ~/.gitignore_global"
+}
+
+configure_git() {
+    info "Configuring git globals..."
+    # .gitconfig is NOT symlinked so user.name / user.email stay per-machine.
+    # Everything below is set via `git config --global` so it's always correct
+    # regardless of what's in ~/.gitconfig.
+
+    git_config_set core.excludesfile "$HOME/.gitignore_global"
+
+    # delta — pretty diffs. Only wire up if the binary is present so we don't
+    # break `git log`/`git diff` on machines where --skip-brew was used.
+    if command -v delta &> /dev/null; then
+        git_config_set core.pager "delta"
+        git_config_set interactive.diffFilter "delta --color-only"
+        git_config_set delta.navigate "true"
+        git_config_set delta.line-numbers "true"
+        git_config_set merge.conflictstyle "zdiff3"
+        success "Git configured (gitignore + delta)"
+    else
+        warn "delta not installed — skipping delta config (run brew bundle to install)"
+        success "Git configured (gitignore only)"
+    fi
 }
 
 configure_zsh() {
@@ -298,7 +354,11 @@ configure_zsh() {
         # Add to /etc/shells if not present
         if ! grep -q "$zsh_path" /etc/shells; then
             info "Adding $zsh_path to /etc/shells (requires sudo)"
-            echo "$zsh_path" | sudo tee -a /etc/shells > /dev/null
+            if [ "$DRY_RUN" = true ]; then
+                echo -e "${YELLOW}[DRY-RUN]${NC} echo $zsh_path | sudo tee -a /etc/shells"
+            else
+                echo "$zsh_path" | sudo tee -a /etc/shells > /dev/null
+            fi
         fi
 
         # Change default shell
@@ -386,8 +446,17 @@ create_secrets_template() {
     info "Creating secrets template..."
 
     local secrets_example="$HOME/.secrets.example"
-    if [ ! -f "$secrets_example" ]; then
-        run cat > "$secrets_example" << 'EOF'
+    if [ -f "$secrets_example" ]; then
+        info "Secrets template already exists"
+        return
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}[DRY-RUN]${NC} write secrets template -> $secrets_example"
+        return
+    fi
+
+    cat > "$secrets_example" << 'EOF'
 # =============================================================================
 # Secrets File - Copy to ~/.secrets and fill in your values
 # =============================================================================
@@ -408,11 +477,8 @@ create_secrets_template() {
 # Other secrets
 # export DATABASE_URL=""
 EOF
-        success "Created $secrets_example"
-        warn "Copy to ~/.secrets and add your actual API keys"
-    else
-        info "Secrets template already exists"
-    fi
+    success "Created $secrets_example"
+    warn "Copy to ~/.secrets and add your actual API keys"
 }
 
 print_post_install() {

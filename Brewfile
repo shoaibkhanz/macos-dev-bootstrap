@@ -1,11 +1,25 @@
 # Dotfiles Brewfile
 # Install with: brew bundle --file=Brewfile
+#
+# Work mode: HOMEBREW_BUNDLE_WORK=1 brew bundle --file=Brewfile
+# (set automatically by `./install.sh --work`)
+# Personal-only entries are wrapped in `unless work?` and skipped on work machines.
+#
+# Note: brew bundle scrubs the environment but preserves HOMEBREW_* vars,
+# which is why this flag must be HOMEBREW_-prefixed.
+#
+# Mark an item as personal by moving it inside the `unless work?` block below.
+
+def work?
+  ENV["HOMEBREW_BUNDLE_WORK"] == "1"
+end
 
 # Taps
 tap "nikitabobko/tap"   # aerospace
 tap "manaflow-ai/cmux"  # cmux
 tap "oven-sh/bun"       # bun
 tap "sst/tap"           # opencode
+tap "hashicorp/tap"     # terraform (no longer in homebrew-core since BSL relicense)
 
 # =============================================================================
 # Core CLI Tools
@@ -34,6 +48,7 @@ brew "gnu-sed"
 brew "uv"              # Fast Python package manager
 brew "pipx"            # Install/run Python CLI tools in isolation
 brew "lazygit"         # Git TUI
+brew "git-delta"       # Pretty git diffs (used as core.pager + interactive.diffFilter)
 brew "gh"              # GitHub CLI
 brew "glab"            # GitLab CLI
 brew "node"
@@ -61,7 +76,7 @@ brew "k9s"
 brew "kind"
 brew "argocd"
 brew "awscli"
-brew "terraform"
+brew "hashicorp/tap/terraform"
 
 # =============================================================================
 # Docker
@@ -94,13 +109,17 @@ brew "postgresql@14"
 cask "nikitabobko/tap/aerospace"  # Tiling window manager
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
-cask "handy"           # Offline speech-to-text
-cask "obsidian"        # Knowledge management
 cask "manaflow-ai/cmux/cmux"  # AI agent terminal manager
 cask "claude-code"     # Claude CLI agent
 cask "codex"           # OpenAI coding agent
 cask "gcloud-cli"      # Google Cloud SDK
 cask "ngrok"           # Secure tunnelling
+
+# Personal-only — skipped on work machines (./install.sh --work)
+unless work?
+  cask "handy"         # Offline speech-to-text
+  cask "obsidian"      # Knowledge management
+end
 
 # =============================================================================
 # AI & Agentic Tools
