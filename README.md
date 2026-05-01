@@ -23,22 +23,52 @@ cd macos-dev-bootstrap
 
 # Run the installer
 ./install.sh
+
+# On a work machine, skip personal-only apps (obsidian, handy, ...)
+./install.sh --work
 ```
+
+### Flags
+
+| Flag | Purpose |
+|------|---------|
+| `--dry-run` | Print every action without making changes |
+| `--skip-brew` | Skip Homebrew install and `brew bundle` |
+| `--work` | Skip personal-only Brewfile entries (sets `HOMEBREW_BUNDLE_WORK=1`) |
+| `--help` | Show usage |
+
+To mark additional packages as personal-only, move them inside the `unless work?` block in `Brewfile`.
 
 ## What the Installer Does
 
 1. **Installs Homebrew** (if not present)
-2. **Installs all packages** from Brewfile (CLI tools, apps, fonts)
-3. **Configures macOS** settings for faster keyboard, disabled auto-correct, Raycast hotkey
-4. **Backs up existing configs** to `~/.config-backup-TIMESTAMP/`
+2. **Installs all packages** from `Brewfile` (CLI tools, apps, fonts) — `--work` skips personal-only entries
+3. **Configures macOS** settings: faster keyboard, no auto-correct, Raycast hotkey
+4. **Backs up existing configs** to `~/.config-backup-YYYYMMDD-HHMMSS/` (preserves path structure to avoid filename collisions)
 5. **Creates symlinks** from your home directory to this repo
-6. **Verifies git** global gitignore is configured
-7. **Sets zsh as default shell** (adds to /etc/shells if needed)
+6. **Configures git globals** — `core.excludesfile`, and (if `delta` is installed) `core.pager`, `interactive.diffFilter`, `delta.navigate`, `delta.line-numbers`, `merge.conflictstyle = zdiff3`
+7. **Sets zsh as default shell** (adds to `/etc/shells` if needed)
 8. **Installs TPM and tmux plugins** (auto-installs, no manual step needed)
-9. **Installs Neovim providers** (Python via uv, Ruby, Mermaid CLI)
+9. **Installs Neovim providers** (Python via uv, Ruby, Node, Mermaid CLI)
 10. **Creates secrets template** at `~/.secrets.example`
 
 Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nvim/` are automatically reflected in this repo.
+
+### Safety
+
+- `set -euo pipefail` + `trap ERR` — script aborts on any uncaught error and prints the line number.
+- `--dry-run` is fully honoured: no file is created or written, no `sudo`, no `curl | bash`, no global git config writes.
+- Anything `install.sh` is about to overwrite (in `~/.zshrc`, `~/.config/`, `~/.claude/`, `~/.agents/`) is backed up to `~/.config-backup-…/` first.
+
+### Work mode (`--work`)
+
+Use on machines that should not get personal-only apps (current Mac at a new job, shared machines, etc.). Implementation:
+
+- `install.sh --work` exports `HOMEBREW_BUNDLE_WORK=1` for `brew bundle`.
+- The `Brewfile` defines `def work?` and gates personal items with `unless work?`.
+- `HOMEBREW_BUNDLE_WORK` is `HOMEBREW_`-prefixed because `brew bundle` scrubs other env vars.
+
+Currently skipped under `--work`: `obsidian`, `handy`. Add more by moving them inside the `unless work?` block in `Brewfile`.
 
 ## What's Included
 
@@ -78,7 +108,13 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 
 ### Productivity Apps
 - **Raycast** - Spotlight replacement (Command+Space)
-- **Handy** - Offline speech-to-text transcription
+- **Handy** _(personal-only — skipped with `--work`)_ - Offline speech-to-text transcription
+- **Obsidian** _(personal-only — skipped with `--work`)_ - Knowledge management
+
+### Git
+- **git-delta** - Pretty `git diff` and `git log` output, side-by-side merges via `zdiff3`. Wired up by `install.sh` only when the `delta` binary is present, so `--skip-brew` machines don't break.
+- **Global gitignore** - Symlinked from `dotfiles/.gitignore_global` (see below).
+- **`.gitconfig`** is **not** symlinked — `user.name` / `user.email` stay per-machine.
 
 ### Global Gitignore
 Automatically ignores across all repos:
@@ -99,10 +135,10 @@ Automatically ignores across all repos:
 git, zsh, tmux, neovim, ripgrep, fd, fzf, zoxide, bat, eza, jq, yq
 
 **Development:**
-uv (Python), lazygit, gh, glab, node, go, rust, lua-language-server, luarocks, luajit, tree-sitter, tectonic
+uv (Python), lazygit, git-delta, gh, glab, node, go, rust, lua-language-server, luarocks, luajit, tree-sitter, tectonic
 
 **Kubernetes & Cloud:**
-kubectl, kubecolor, helm, k9s, kind, argocd, awscli, terraform
+kubectl, kubecolor, kustomize, helm, k9s, kind, argocd, awscli, terraform (via `hashicorp/tap` — no longer in homebrew-core since the BSL relicense)
 
 **Docker:**
 docker, docker-compose, lazydocker
@@ -111,7 +147,7 @@ docker, docker-compose, lazydocker
 btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
 **Apps:**
-aerospace, ghostty, raycast, handy, nerd fonts
+aerospace, ghostty, raycast, claude-code, codex, cmux, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): obsidian, handy.
 
 ### macOS Optimizations
 
@@ -130,7 +166,7 @@ aerospace, ghostty, raycast, handy, nerd fonts
 1. **Restart terminal** to use zsh with new config
 2. **Open nvim** - lazy.nvim will auto-install plugins on first launch
 3. **Verify Jupyter** - Open any `.ipynb` in nvim, use `,mi` to init kernel, `,ml` to run a line
-4. **Configure Handy** - Set your preferred hotkey in the app
+4. **Configure Handy** _(personal install only)_ - Set your preferred hotkey in the app
 5. **Add your secrets:**
    ```bash
    cp ~/.secrets.example ~/.secrets
@@ -143,18 +179,22 @@ Note: Zsh is set as default shell, tmux plugins are installed, and Neovim provid
 
 ```
 macos-dev-bootstrap/
-├── install.sh              # Main setup script
-├── Brewfile                # Homebrew packages
+├── install.sh              # Main setup script (set -euo pipefail, trap ERR)
+├── Brewfile                # Homebrew packages (Ruby — supports `unless work?`)
 ├── secrets.example         # Template for API keys
 ├── dotfiles/
-│   ├── .zshrc              # Shell config
-│   ├── .tmux.conf          # Tmux config
-│   ├── .gitconfig          # Git config
-│   └── .gitignore_global   # Global gitignore
+│   ├── .zshrc              # Shell config (symlinked)
+│   ├── .tmux.conf          # Tmux config (symlinked)
+│   ├── .gitconfig          # Reference only — NOT symlinked
+│   ├── .gitignore_global   # Global gitignore (symlinked)
+│   └── aliases/            # Sourced by .zshrc
 ├── nvim/                   # Neovim config (AstroNvim v5)
 │   └── lua/plugins/        # Plugin configs (molten, neotest, obsidian, etc.)
 ├── aerospace/              # Window manager config
 ├── ghostty/                # Terminal config
+├── lazygit/                # Lazygit config
+├── marimo/                 # Marimo notebook config (templated, copied not symlinked)
+├── claude/                 # Claude Code: agents/, rules/, commands/, settings.json
 └── starship.toml           # Prompt config
 ```
 
@@ -172,14 +212,16 @@ git push
 
 ## Re-running the Installer
 
-The script is idempotent - safe to run multiple times:
+The script is idempotent — safe to run multiple times:
 
 - Already-installed packages are skipped
-- Already-symlinked files aren't backed up again
+- Already-symlinked files aren't backed up again (only non-symlink files in the watched paths trigger a backup)
+- `git config --global` keys are only written when their current value differs (cleaner dry-run output)
 - Zsh default shell check is skipped if already set
 - macOS settings are just reapplied
+- `--work` and the default mode produce different `Brewfile` resolutions but use the same idempotent install
 
-If something fails halfway, just run `./install.sh` again.
+If something fails halfway, the `trap ERR` will print the failing line number; just fix the cause and run `./install.sh` again.
 
 ## License
 
