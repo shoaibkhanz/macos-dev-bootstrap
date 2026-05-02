@@ -27,6 +27,9 @@ return {
       vim.api.nvim_set_hl(0, 'WhichKeyFloat',     { bg = bg })
       vim.api.nvim_set_hl(0, 'WhichKeyBorder',    { bg = bg, fg = '#444444' })
       vim.api.nvim_set_hl(0, 'WhichKeyValue',     { bg = bg, fg = '#888888' })
+
+      -- Hide the native ColorColumn cell — virt-column.nvim draws a thin vertical char instead
+      vim.api.nvim_set_hl(0, 'ColorColumn', { bg = 'NONE' })
     end
 
     local ok = pcall(vim.cmd.colorscheme, 'yugen')
