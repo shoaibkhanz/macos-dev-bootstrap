@@ -301,6 +301,14 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
     link_file "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
     link_file "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
+
+    # Claude Code: per-skill symlinks so vendored skills are discoverable
+    for skill in "$SCRIPT_DIR"/claude/agents/skills/*/; do
+        [ -d "$skill" ] || continue
+        local name
+        name="$(basename "$skill")"
+        link_file "${skill%/}" "$HOME/.claude/skills/$name"
+    done
 }
 
 git_config_set() {
