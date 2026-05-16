@@ -24,7 +24,7 @@ cd macos-dev-bootstrap
 # Run the installer
 ./install.sh
 
-# On a work machine, skip personal-only apps (obsidian, handy, ...)
+# On a work machine, skip personal-only apps (handy, ...)
 ./install.sh --work
 ```
 
@@ -68,15 +68,15 @@ Use on machines that should not get personal-only apps (current Mac at a new job
 - The `Brewfile` defines `def work?` and gates personal items with `unless work?`.
 - `HOMEBREW_BUNDLE_WORK` is `HOMEBREW_`-prefixed because `brew bundle` scrubs other env vars.
 
-Currently skipped under `--work`: `obsidian`, `handy`. Add more by moving them inside the `unless work?` block in `Brewfile`.
+Currently skipped under `--work`: `handy`. Add more by moving them inside the `unless work?` block in `Brewfile`.
 
 ## What's Included
 
 ### Shell (zsh)
-- **Powerlevel10k** - Fast, customizable prompt
+- **Starship** - Fast, cross-shell prompt (configured in `starship.toml`)
 - **Zinit** - Plugin manager with lazy loading
 - **Plugins** - syntax highlighting, autosuggestions, fzf-tab
-- **Aliases** - git, docker, kubernetes, tmux shortcuts
+- **Aliases** - git, docker, kubernetes, tmux shortcuts (inlined in `.zshrc`)
 - **Zoxide** - Smarter `cd` that learns your habits
 - **Set as default** - Automatically configured as login shell
 
@@ -92,12 +92,7 @@ Currently skipped under `--work`: `obsidian`, `handy`. Add more by moving them i
 - **Treesitter** - Better syntax highlighting
 - **Jupyter notebooks** - molten-nvim, jupytext, image.nvim (Kitty graphics)
 - **Testing** - neotest with pytest adapter and DAP debugging
-- **Custom plugins** - lazygit, trouble, obsidian, render-markdown
-
-### Window Manager (Aerospace)
-- **Tiling** - Automatic window arrangement
-- **Workspaces** - Organized by purpose (work, communication, etc.)
-- **Vim navigation** - Alt+hjkl to move focus
+- **Custom plugins** - lazygit, trouble, render-markdown
 
 ### Terminal (Ghostty)
 - **Fast** - GPU-accelerated rendering
@@ -109,7 +104,6 @@ Currently skipped under `--work`: `obsidian`, `handy`. Add more by moving them i
 ### Productivity Apps
 - **Raycast** - Spotlight replacement (Command+Space)
 - **Handy** _(personal-only — skipped with `--work`)_ - Offline speech-to-text transcription
-- **Obsidian** _(personal-only — skipped with `--work`)_ - Knowledge management
 
 ### Git
 - **git-delta** - Pretty `git diff` and `git log` output, side-by-side merges via `zdiff3`. Wired up by `install.sh` only when the `delta` binary is present, so `--skip-brew` machines don't break.
@@ -147,7 +141,7 @@ docker, docker-compose, lazydocker
 btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
 **Apps:**
-aerospace, ghostty, raycast, claude-code, codex, cmux, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): obsidian, handy.
+ghostty, raycast, claude-code, codex, cmux, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): handy.
 
 ### macOS Optimizations
 
@@ -183,14 +177,12 @@ macos-dev-bootstrap/
 ├── Brewfile                # Homebrew packages (Ruby — supports `unless work?`)
 ├── secrets.example         # Template for API keys
 ├── dotfiles/
-│   ├── .zshrc              # Shell config (symlinked)
+│   ├── .zshrc              # Shell config (symlinked) — aliases inlined here
 │   ├── .tmux.conf          # Tmux config (symlinked)
 │   ├── .gitconfig          # Reference only — NOT symlinked
-│   ├── .gitignore_global   # Global gitignore (symlinked)
-│   └── aliases/            # Sourced by .zshrc
+│   └── .gitignore_global   # Global gitignore (symlinked)
 ├── nvim/                   # Neovim config (AstroNvim v5)
-│   └── lua/plugins/        # Plugin configs (molten, neotest, obsidian, etc.)
-├── aerospace/              # Window manager config
+│   └── lua/plugins/        # Plugin configs (molten, neotest, etc.)
 ├── ghostty/                # Terminal config
 ├── lazygit/                # Lazygit config
 ├── marimo/                 # Marimo notebook config (templated, copied not symlinked)

@@ -87,7 +87,7 @@ parse_args() {
                 echo "Options:"
                 echo "  --dry-run    Preview changes without making them"
                 echo "  --skip-brew  Skip Homebrew install and brew bundle"
-                echo "  --work       Skip personal-only packages (e.g. obsidian, handy)"
+                echo "  --work       Skip personal-only packages (e.g. handy)"
                 echo "  --help       Show this help message"
                 exit 0
                 ;;
@@ -183,7 +183,6 @@ backup_existing() {
         "$HOME/.tmux.conf"
         "$HOME/.gitignore_global"
         "$HOME/.config/nvim"
-        "$HOME/.config/aerospace"
         "$HOME/.config/ghostty"
         "$HOME/.config/starship.toml"
         "$HOME/.config/lazygit"
@@ -287,7 +286,6 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/dotfiles/.tmux.conf" "$HOME/.tmux.conf"
     link_file "$SCRIPT_DIR/dotfiles/.gitignore_global" "$HOME/.gitignore_global"
     link_file "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
-    link_file "$SCRIPT_DIR/aerospace" "$HOME/.config/aerospace"
     link_file "$SCRIPT_DIR/ghostty" "$HOME/.config/ghostty"
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
     link_file "$SCRIPT_DIR/lazygit" "$HOME/.config/lazygit"

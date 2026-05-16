@@ -219,7 +219,7 @@ zinit light Aloxaf/fzf-tab                     # FZF-powered tab completion
 
 # --- Oh-My-Zsh Snippets ---
 # These provide additional aliases and completions from Oh-My-Zsh
-# zinit snippet OMZP::git  # Disabled: using custom aliases in aliases/git_aliases.zsh
+# zinit snippet OMZP::git  # Disabled: using custom git aliases inlined in section 3
 zinit snippet OMZP::sudo              # Press ESC twice to add sudo
 zinit snippet OMZP::aws
 # zinit snippet OMZP::kubectl  # Disabled: using custom lazy-load setup instead (see Kubernetes section)
