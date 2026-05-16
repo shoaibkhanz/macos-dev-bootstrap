@@ -15,7 +15,6 @@ def work?
 end
 
 # Taps
-tap "nikitabobko/tap"   # aerospace
 tap "manaflow-ai/cmux"  # cmux
 tap "oven-sh/bun"       # bun
 tap "sst/tap"           # opencode
@@ -108,7 +107,6 @@ brew "postgresql@14"
 # =============================================================================
 # Casks (GUI Applications)
 # =============================================================================
-cask "nikitabobko/tap/aerospace"  # Tiling window manager
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
 cask "manaflow-ai/cmux/cmux"  # AI agent terminal manager
@@ -120,7 +118,6 @@ cask "ngrok"           # Secure tunnelling
 # Personal-only — skipped on work machines (./install.sh --work)
 unless work?
   cask "handy"         # Offline speech-to-text
-  cask "obsidian"      # Knowledge management
 end
 
 # =============================================================================
