@@ -121,6 +121,44 @@ install_homebrew() {
     success "Homebrew installed"
 }
 
+clear_cask_conflicts() {
+    # Some casks (e.g. `codex`) refuse to install if a non-Homebrew binary
+    # already occupies their target path — typically from a prior `npm i -g`
+    # install. Move those aside so brew bundle can proceed.
+    info "Checking for known cask/binary conflicts..."
+
+    local conflicts=(
+        "/opt/homebrew/bin/codex"   # cask "codex"
+    )
+
+    local found_any=false
+    for path in "${conflicts[@]}"; do
+        [ -e "$path" ] || [ -L "$path" ] || continue
+
+        # If it's a symlink, check where it points; skip if Homebrew already owns it.
+        if [ -L "$path" ]; then
+            local target
+            target="$(readlink "$path")"
+            case "$target" in
+                /opt/homebrew/Cellar/*|/opt/homebrew/Caskroom/*|../Cellar/*|../Caskroom/*)
+                    continue
+                    ;;
+            esac
+        fi
+
+        if [ "$found_any" = false ]; then
+            run mkdir -p "$BACKUP_DIR"
+            found_any=true
+        fi
+        warn "Found non-Homebrew file at $path — moving aside to allow cask install"
+        run mv "$path" "$BACKUP_DIR/$(basename "$path").pre-brew"
+    done
+
+    if [ "$found_any" = false ]; then
+        info "No conflicts found"
+    fi
+}
+
 install_packages() {
     info "Installing packages from Brewfile..."
     if [ ! -f "$SCRIPT_DIR/Brewfile" ]; then
@@ -128,13 +166,24 @@ install_packages() {
         return
     fi
 
+    local bundle_cmd=(brew bundle --file="$SCRIPT_DIR/Brewfile")
     if [ "$WORK_MODE" = true ]; then
         # HOMEBREW_-prefixed because brew bundle scrubs other env vars.
-        run env HOMEBREW_BUNDLE_WORK=1 brew bundle --file="$SCRIPT_DIR/Brewfile"
-    else
-        run brew bundle --file="$SCRIPT_DIR/Brewfile"
+        bundle_cmd=(env HOMEBREW_BUNDLE_WORK=1 "${bundle_cmd[@]}")
     fi
-    success "Packages installed"
+
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}[DRY-RUN]${NC} ${bundle_cmd[*]}"
+        return
+    fi
+
+    # Don't let a single failed cask abort the rest of the bootstrap.
+    if "${bundle_cmd[@]}"; then
+        success "Packages installed"
+    else
+        warn "brew bundle reported failures — continuing with the rest of the install."
+        warn "Re-run 'brew bundle --file=$SCRIPT_DIR/Brewfile' after resolving the errors above."
+    fi
 }
 
 configure_macos() {
@@ -529,6 +578,7 @@ main() {
 
     if [ "$SKIP_BREW" = false ]; then
         install_homebrew
+        clear_cask_conflicts
         install_packages
     fi
     configure_macos
