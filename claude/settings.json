@@ -1,4 +1,7 @@
 {
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -34,5 +37,7 @@
     }
   },
   "effortLevel": "high",
-  "voiceEnabled": true
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true,
+  "agentPushNotifEnabled": true
 }

@@ -242,6 +242,7 @@ backup_existing() {
         "$HOME/.agents/skills"
         "$HOME/.agents/hooks"
         "$HOME/.agents/commands"
+        "$HOME/.config/herdr/config.toml"
     )
 
     local backup_needed=false
@@ -338,6 +339,7 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/ghostty" "$HOME/.config/ghostty"
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
     link_file "$SCRIPT_DIR/lazygit" "$HOME/.config/lazygit"
+    link_file "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
 
     # Claude Code: agents (skills, hooks, commands)
     link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"

@@ -81,6 +81,7 @@ alias lz="lazygit"             # Terminal UI for git
 alias op="opencode"            # OpenCode AI assistant
 alias cc="claude"              # Claude CLI
 alias cx="codex"              # Claude CLI
+alias h="herdr"
 
 # --- Python/UV (fast Python package manager) ---
 ur() { uv run "$@"; }          # Run Python scripts with uv

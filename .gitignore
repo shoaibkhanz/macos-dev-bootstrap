@@ -28,3 +28,6 @@ credentials.json
 
 # Neovim
 nvim/lazy-lock.json
+
+# Machine-local skill symlink (absolute path, not portable)
+claude/agents/skills/code-hyperlearning

@@ -110,6 +110,12 @@ Currently skipped under `--work`: `handy`. Add more by moving them inside the `u
 - **Global gitignore** - Symlinked from `dotfiles/.gitignore_global` (see below).
 - **`.gitconfig`** is **not** symlinked — `user.name` / `user.email` stay per-machine.
 
+### Herdr
+- **Theme** - Vesper theme
+- **Toast delivery** - System notifications
+- **Safe prefix bindings** - Tab navigation and rename use the Herdr prefix to avoid intercepting normal typing
+- **Config-only symlink** - `config.toml` is managed while logs, sockets, and session state stay local
+
 ### Global Gitignore
 Automatically ignores across all repos:
 - `.DS_Store`, `._*` (macOS junk)
@@ -187,6 +193,7 @@ macos-dev-bootstrap/
 ├── lazygit/                # Lazygit config
 ├── marimo/                 # Marimo notebook config (templated, copied not symlinked)
 ├── claude/                 # Claude Code: agents/, rules/, commands/, settings.json
+├── herdr/                  # Herdr config
 └── starship.toml           # Prompt config
 ```
 
