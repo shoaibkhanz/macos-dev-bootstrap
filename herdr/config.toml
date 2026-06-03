@@ -25,3 +25,5 @@ rename_tab = "prefix+shift+e"
 # copy_mode default is prefix+[, which collides with previous_tab above.
 # Move it to prefix+y so it isn't silently disabled (warned in herdr-client.log).
 copy_mode = "prefix+y"
+# zoom default is prefix+z; remap to prefix+f.
+zoom = "prefix+f"
