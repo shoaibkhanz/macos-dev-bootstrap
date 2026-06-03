@@ -1,0 +1,27 @@
+onboarding = false
+
+[theme]
+name = "vesper"
+
+[ui.toast]
+delivery = "system"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+
+
+
+[keys]
+# Prefix key to enter navigate mode (default: "ctrl+b")
+# Examples: "ctrl+b", "f12", "esc", "-"
+# Accepted syntax: plain keys, ctrl/shift/alt/cmd/super modifiers, and special keys like enter/tab/esc/left/right/up/down
+# Most reliable bindings are plain keys, ctrl+letter, esc/tab/enter, and function keys.
+# alt+..., cmd/super, and punctuation-with-modifiers may depend on your terminal/tmux setup.
+prefix = "ctrl+s"
+# Override defaults (prefix+p / prefix+n / prefix+shift+t) for tmux-style tab nav.
+previous_tab = "prefix+["
+next_tab = "prefix+]"
+rename_tab = "prefix+shift+e"
+# copy_mode default is prefix+[, which collides with previous_tab above.
+# Move it to prefix+y so it isn't silently disabled (warned in herdr-client.log).
+copy_mode = "prefix+y"
