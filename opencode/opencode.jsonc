@@ -1,0 +1,91 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Privacy: Disable sharing sessions
+  "share": "disabled",
+  "plugin": ["@plannotator/opencode@latest"],
+  // Custom instructions: Load project-specific guidelines
+  // "instructions": ["CONTRIBUTING.md", "README.md"],
+
+  // Keybinds: Vim-style navigation for scrolling chat
+  "keybinds": {
+    "messages_page_down": "ctrl+d,pagedown",
+    "messages_page_up": "ctrl+u,pageup",
+    "messages_half_page_down": "ctrl+alt+d",
+    "messages_half_page_up": "ctrl+alt+u",
+    "messages_first": "home",
+    "messages_last": "end"
+  },
+
+  // Terminal UI: Enhanced scrolling experience
+  "tui": {
+    "scroll_speed": 3,
+    "scroll_acceleration": {
+      "enabled": true
+    }
+  },
+
+  "mcp":{
+"context7": {
+  "type": "remote",
+  "enabled": true,
+  "url": "https://mcp.context7.com/mcp"
+}
+
+  },
+
+  // Disabled providers: Prevent using opencode provider
+  "disabled_providers": ["opencode"],
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen2.5-coder:7b": {
+          "name": "qwen2.5-coder:7b"
+        }
+      }
+    }
+  },
+
+ // Obsidian Agent: British English, focused tools
+  "agent": {
+    "obsidian": {
+      "mode": "primary",
+      "description": "Obsidian vault assistant for daily notes, research, and blog writing",
+      "prompt": "{file:./prompts/obsidian-context.txt}",
+      "temperature": 0.3,
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "grep": true,
+        "glob": true,
+        "bash": false,
+        "skill": true
+      },
+      "permission": {
+        "edit": "allow",
+        "skill": {
+          "today-note": "allow",
+          "task-review": "allow",
+          "research-note": "allow",
+          "blog-draft": "allow"
+        }
+      }
+    }
+  },
+
+  // Skill Permissions
+  "permission": {
+    "skill": {
+      "today-note": "allow",
+      "task-review": "allow",
+      "research-note": "allow",
+      "blog-draft": "allow"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+/* marimo-code.css — Yugen theme (full UI)
+ * Palette: github.com/bettervim/yugen.nvim
+ *
+ * Uses .dark selector to match marimo's own specificity
+ * and !important to override the csstools-light-dark-toggle polyfill.
+ * Also overrides --cm-background for CodeMirror editor cells.
+ */
+
+/* ── Fonts ────────────────────────────────────────────── */
+:root {
+  --monospace-font: var(--marimo-monospace-font, 'Fira Code', monospace);
+  --text-font: var(--marimo-text-font, 'Inter', sans-serif);
+  --heading-font: var(--marimo-heading-font, 'Inter', sans-serif);
+}
+
+/* ── Base colors ──────────────────────────────────────── */
+.dark, .dark-theme, :root {
+  --background: #000000 !important;
+  --foreground: #D4D4D4 !important;
+
+  --muted: #151515 !important;
+  --muted-foreground: #A9A9A9 !important;
+
+  --popover: #151515 !important;
+  --popover-foreground: #D4D4D4 !important;
+
+  --card: #000000 !important;
+  --card-foreground: #D4D4D4 !important;
+
+  --border: #303030 !important;
+  --input: #303030 !important;
+
+  --primary: #FFBE89 !important;
+  --primary-foreground: #151515 !important;
+
+  --secondary: #D4D4D4 !important;
+  --secondary-foreground: #151515 !important;
+
+  --accent: #303030 !important;
+  --accent-foreground: #FFBE89 !important;
+
+  --ring: #505050 !important;
+
+  /* CodeMirror editor background */
+  --cm-background: #000000 !important;
+  --cm-comment: #505050 !important;
+
+  /* Radix gray scale (used throughout marimo UI) */
+  --gray-1: #000000 !important;
+  --gray-2: #0A0A0A !important;
+  --gray-3: #151515 !important;
+  --gray-4: #1A1A1A !important;
+  --gray-5: #222222 !important;
+  --gray-6: #303030 !important;
+  --gray-7: #404040 !important;
+  --gray-8: #505050 !important;
+  --gray-9: #696969 !important;
+  --gray-10: #7A7A7A !important;
+  --gray-11: #A9A9A9 !important;
+  --gray-12: #D4D4D4 !important;
+
+  /* Radix slate scale (used for code/editor areas) */
+  --slate-1: #000000 !important;
+  --slate-2: #0A0A0A !important;
+  --slate-3: #151515 !important;
+  --slate-4: #1A1A1A !important;
+  --slate-5: #222222 !important;
+  --slate-6: #303030 !important;
+  --slate-7: #404040 !important;
+  --slate-8: #505050 !important;
+  --slate-9: #696969 !important;
+  --slate-10: #7A7A7A !important;
+  --slate-11: #A9A9A9 !important;
+  --slate-12: #D4D4D4 !important;
+}
+
+/* ── Semantic colors ──────────────────────────────────── */
+.dark, .dark-theme, :root {
+  --destructive: #F57A7A !important;
+  --destructive-foreground: #FAFAFA !important;
+  --error: #F57A7A !important;
+  --error-foreground: #FAFAFA !important;
+  --success: #7EAB8E !important;
+  --success-foreground: #FAFAFA !important;
+
+  --action: #FFBE89 !important;
+  --action-hover: #FFD0A8 !important;
+  --action-foreground: #000000 !important;
+
+  --link: #FFBE89 !important;
+  --link-visited: #E0A070 !important;
+
+  --stale: rgba(255, 190, 137, 0.15) !important;
+
+  --base-shadow: rgba(0, 0, 0, 0.5) !important;
+  --base-shadow-darker: rgba(0, 0, 0, 0.7) !important;
+  --base-shadow-opacity: 8% !important;
+}
+
+/* ── Extras ───────────────────────────────────────────── */
+code {
+  font-variant-ligatures: contextual;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #303030;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #505050;
+}
+
+::selection {
+  background: #303030;
+  color: #FAFAFA;
+}

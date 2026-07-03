@@ -1,0 +1,146 @@
+{
+    "workbench.iconTheme": "macos-modern-minimal-mono-icon-theme",
+    "workbench.productIconTheme": "macos-modern",
+    "redhat.telemetry.enabled": true,
+    "editor.minimap.enabled": false,
+    "githubPullRequests.pullBranch": "never",
+    "editor.fontFamily": "JetBrains Mono",
+    "editor.fontSize": 16,
+    "editor.scrollbar.verticalScrollbarSize": 0,
+    "editor.scrollbar.horizontalScrollbarSize": 0,
+    "terminal.integrated.fontFamily": "monospace",
+    "workbench.colorTheme": "Catppuccin Mocha",
+    "github.copilot.editor.enableAutoCompletions": true,
+    "interactiveWindow.executeWithShiftEnter": true,
+    "extensions.experimental.affinity": {
+        "asvetliakov.vscode-neovim": 1
+    },
+    "editor.formatOnSave": true,
+    "workbench.activityBar.location": "hidden",
+    "editor.lineNumbers": "relative",
+    "editor.accessibilityPageSize": 16,
+    "window.zoomLevel": 2,
+    "terminal.integrated.fontSize": 16,
+    //vim bindings for vscode-neoovim extension.
+    "vscode-neovim.compositeKeys": {
+        "nn": {
+            "command": "vscode-neovim.escape",
+        },
+    },
+    //vim bindings for vim extension
+    "vim.insertModeKeyBindings": [
+        {
+            "before": [
+                "n",
+                "n"
+            ],
+            "after": [
+                "<Esc>"
+            ]
+        }
+    ],
+    "vim.leader": "<Space>",
+    "vim.hlsearch": true,
+    "vim.normalModeKeyBindingsNonRecursive": [
+        // NAVIGATION
+        // switch b/w buffers
+        {
+            "before": [
+                "<S-h>"
+            ],
+            "commands": [
+                ":bprevious"
+            ]
+        },
+        {
+            "before": [
+                "<S-l>"
+            ],
+            "commands": [
+                ":bnext"
+            ]
+        },
+        // splits
+        {
+            "before": [
+                "leader",
+                "v"
+            ],
+            "commands": [
+                ":vsplit"
+            ]
+        },
+        {
+            "before": [
+                "leader",
+                "s"
+            ],
+            "commands": [
+                ":split"
+            ]
+        },
+        // panes
+        {
+            "before": [
+                "<C-h>"
+            ],
+            "commands": [
+                "workbench.action.focusLeftGroup"
+            ]
+        },
+        {
+            "before": [
+                "<C-j>"
+            ],
+            "commands": [
+                "workbench.action.focusBelowGroup"
+            ]
+        },
+        {
+            "before": [
+                "<C-k>"
+            ],
+            "commands": [
+                "workbench.action.focusAboveGroup"
+            ]
+        },
+        {
+            "before": [
+                "<C-l>"
+            ],
+            "commands": [
+                "workbench.action.focusRightGroup"
+            ]
+        },
+        // Extra Options
+        {
+            "before": [
+                "leader",
+                "f"
+            ],
+            "commands": [
+                "workbench.action.quickOpen"
+            ]
+        },
+        {
+            "before": [
+                "leader",
+                "x",
+            ],
+            "commands": [
+                "workbench.actions.view.problems"
+            ]
+        },
+    ],
+    //other settings
+    "github.copilot.advanced": {},
+    "github.copilot.enable": {
+        "*": false,
+        "markdown": true,
+        "plaintext": true
+    },
+    "editor.codeActionsOnSave": {},
+    "breadcrumbs.enabled": false,
+    "editor.renderWhitespace": "none",
+    "editor.renderControlCharacters": false
+}

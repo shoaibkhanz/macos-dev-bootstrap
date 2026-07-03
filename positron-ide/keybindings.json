@@ -1,0 +1,83 @@
+// Place your key bindings in this file to override the defaults
+[
+    {
+        "key": "alt+g",
+        "command": "github.copilot.chat.attachSelection"
+    },
+    {
+        "key": "alt+cmd+i",
+        "command": "workbench.panel.chat",
+        "when": "workbench.panel.chat.view.copilot.active"
+    },
+    {
+        "key": "alt+,",
+        "command": "workbench.action.openSettingsJson"
+    },
+    {
+        "key": "alt+k",
+        "command": "workbench.action.openGlobalKeybindingsFile"
+    },
+    // FILE TREE
+    // 1. When the sidebar is not visible, open it and focus on the Files Explorer
+    {
+        "key": "shift+x",
+        "command": "workbench.view.explorer",
+        "when": "!sideBarVisible"
+    },
+    // 2. When the sidebar is visible but not focused on the Files Explorer, focus on it
+    {
+        "key": "shift+x",
+        "command": "workbench.files.action.focusFilesExplorer",
+        "when": "sideBarVisible && activeViewlet != 'workbench.view.explorer'"
+    },
+    // 3. When the Files Explorer is focused, close the sidebar and focus back on the editor
+    {
+        "key": "shift+x",
+        "command": "workbench.action.focusActiveEditorGroup",
+        "when": "sideBarVisible && activeViewlet == 'workbench.view.explorer'"
+    },
+    {
+        "key": "shift+x",
+        "command": "workbench.action.toggleSidebarVisibility",
+        "when": "sideBarVisible && activeViewlet == 'workbench.view.explorer' && editorFocus"
+    },
+    {
+        "key": "n",
+        "command": "explorer.newFile",
+        "when": "filesExplorerFocus && !inputFocus"
+    },
+    {
+        "command": "renameFile",
+        "key": "r",
+        "when": "filesExplorerFocus && !inputFocus"
+    },
+    {
+        "key": "shift+n",
+        "command": "explorer.newFolder",
+        "when": "explorerViewletFocus"
+    },
+    {
+        "command": "deleteFile",
+        "key": "d",
+        "when": "filesExplorerFocus && !inputFocus"
+    },
+    {
+        "key": "shift+k",
+        "command": "notebook.toggleLineNumbers",
+        "when": "notebookEditorFocused && !inputFocus && !notebookOutputInputFocused"
+    },
+    {
+        "key": "shift+l",
+        "command": "-notebook.toggleLineNumbers",
+        "when": "notebookEditorFocused && !inputFocus && !notebookOutputInputFocused"
+    },
+    {
+        "key": "alt+z",
+        "command": "workbench.action.positronConsole.focusConsole",
+    },
+    {
+        "key": "alt+z",
+        "command": "workbench.action.closePanel",
+        "when": "positronConsoleFocused"
+    },
+]

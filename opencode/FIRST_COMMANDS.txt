@@ -1,0 +1,95 @@
+═══════════════════════════════════════════════════════════════
+FIRST COMMANDS TO TRY - Copy and paste these!
+═══════════════════════════════════════════════════════════════
+
+After launching OpenCode and switching to 'obsidian' agent:
+
+───────────────────────────────────────────────────────────────
+1. TEST TODAY-NOTE SKILL
+───────────────────────────────────────────────────────────────
+
+Add to today: Testing my new Obsidian agent system - this is brilliant!
+
+Expected: Appends to DailyNotes/2025-12-31.md with timestamp
+
+
+───────────────────────────────────────────────────────────────
+2. TEST TASK-REVIEW SKILL
+───────────────────────────────────────────────────────────────
+
+Review my tasks from this week
+
+Expected: Shows incomplete tasks from past 7 days, grouped by date
+
+
+───────────────────────────────────────────────────────────────
+3. TEST RESEARCH-NOTE SKILL
+───────────────────────────────────────────────────────────────
+
+Create research note on Mixture of Experts architecture in LLMs
+
+Expected: Creates Pages/Mixture of Experts.md with full structure
+
+
+───────────────────────────────────────────────────────────────
+4. TEST BLOG-DRAFT SKILL
+───────────────────────────────────────────────────────────────
+
+Write blog post about optimising LLM inference for production systems
+
+Expected: Creates Tweets/Optimising LLM Inference.md with structure
+
+
+───────────────────────────────────────────────────────────────
+VERIFICATION CHECKLIST
+───────────────────────────────────────────────────────────────
+
+After running all 4 commands:
+
+□ Open Obsidian
+□ Check DailyNotes/2025-12-31.md has new timestamped entry
+□ Verify task review showed tasks from past week
+□ Confirm Pages/Mixture of Experts.md was created
+□ Confirm Tweets/Optimising LLM Inference.md was created
+□ All content uses British English spelling
+□ All notes have proper YAML frontmatter
+□ Links use [[wiki-link]] format
+
+
+───────────────────────────────────────────────────────────────
+MORE REALISTIC EXAMPLES (Try these next)
+───────────────────────────────────────────────────────────────
+
+Add to today: Read about LoRA fine-tuning - key insight is using low-rank matrices reduces parameters by 90% whilst maintaining performance
+
+Create research note for the paper "Attention Is All You Need"
+
+Write blog explaining transformer attention mechanisms for ML engineers
+
+Review my tasks
+
+
+───────────────────────────────────────────────────────────────
+DAILY WORKFLOW EXAMPLES
+───────────────────────────────────────────────────────────────
+
+Morning:
+  Review my tasks
+  Add to today: Today's goals - finish LoRA research, draft blog post, review experiment results
+
+During work:
+  Quick capture: Interesting finding - batch size affects LoRA convergence
+  Add note about transformer optimisation techniques
+
+Research session:
+  Create research note on Parameter-Efficient Fine-Tuning methods
+  Add to today: Completed PEFT paper review - LoRA seems most practical
+
+End of day:
+  Review my tasks
+  Add to today: Completed LoRA research and started blog draft
+
+
+═══════════════════════════════════════════════════════════════
+Ready to start? Copy the first command above and try it!
+═══════════════════════════════════════════════════════════════
