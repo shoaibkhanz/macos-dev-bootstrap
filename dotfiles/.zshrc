@@ -81,7 +81,14 @@ alias lz="lazygit"             # Terminal UI for git
 alias op="opencode"            # OpenCode AI assistant
 alias cc="claude"              # Claude CLI
 alias cx="codex"              # Claude CLI
-alias h="herdr"
+
+# --- Herdr (terminal workspace manager) ---
+alias h="herdr"                          # Launch / attach session
+alias hd="herdr"                         # Launch / attach session (matches config refs)
+alias hds="herdr status"                 # Client + server status
+alias hdp="herdr plugin list"            # List installed plugins
+alias hdrc="herdr server reload-config"  # Reload config.toml in running server
+alias hdu="herdr update"                 # Update herdr to latest
 
 # --- Python/UV (fast Python package manager) ---
 ur() { uv run "$@"; }          # Run Python scripts with uv
