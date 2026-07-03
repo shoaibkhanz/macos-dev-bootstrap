@@ -1,392 +1,89 @@
 ---
 name: code-review
-description: Conduct thorough, constructive code reviews for quality and security. Use when reviewing pull requests, checking code quality, identifying bugs, or auditing security. Handles best practices, SOLID principles, security vulnerabilities, performance analysis, and testing coverage.
-allowed-tools: Read Grep Glob
-metadata:
-  tags: code-review, code-quality, security, best-practices, PR-review
-  platforms: Claude, ChatGPT, Gemini
+description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
 ---
 
+Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
-# Code Review
-
-## When to use this skill
-- Reviewing pull requests
-- Checking code quality
-- Providing feedback on implementations
-- Identifying potential bugs
-- Suggesting improvements
-- Security audits
-- Performance analysis
-
-## Instructions
-
-### Step 1: Understand the context
-
-**Read the PR description**:
-- What is the goal of this change?
-- Which issues does it address?
-- Are there any special considerations?
-
-**Check the scope**:
-- How many files changed?
-- What type of changes? (feature, bugfix, refactor)
-- Are tests included?
-
-### Step 2: High-level review
-
-**Architecture and design**:
-- Does the approach make sense?
-- Is it consistent with existing patterns?
-- Are there simpler alternatives?
-- Is the code in the right place?
-
-**Code organization**:
-- Clear separation of concerns?
-- Appropriate abstraction levels?
-- Logical file/folder structure?
-
-### Step 3: Detailed code review
-
-**Naming**:
-- [ ] Variables: descriptive, meaningful names
-- [ ] Functions: verb-based, clear purpose
-- [ ] Classes: noun-based, single responsibility
-- [ ] Constants: UPPER_CASE for true constants
-- [ ] Avoid abbreviations unless widely known
-
-**Functions**:
-- [ ] Single responsibility
-- [ ] Reasonable length (< 50 lines ideally)
-- [ ] Clear inputs and outputs
-- [ ] Minimal side effects
-- [ ] Proper error handling
-
-**Classes and objects**:
-- [ ] Single responsibility principle
-- [ ] Open/closed principle
-- [ ] Liskov substitution principle
-- [ ] Interface segregation
-- [ ] Dependency inversion
-
-**Error handling**:
-- [ ] All errors caught and handled
-- [ ] Meaningful error messages
-- [ ] Proper logging
-- [ ] No silent failures
-- [ ] User-friendly errors for UI
-
-**Code quality**:
-- [ ] No code duplication (DRY)
-- [ ] No dead code
-- [ ] No commented-out code
-- [ ] No magic numbers
-- [ ] Consistent formatting
-
-### Step 4: Security review
-
-**Input validation**:
-- [ ] All user inputs validated
-- [ ] Type checking
-- [ ] Range checking
-- [ ] Format validation
-
-**Authentication & Authorization**:
-- [ ] Proper authentication checks
-- [ ] Authorization for sensitive operations
-- [ ] Session management
-- [ ] Password handling (hashing, salting)
-
-**Data protection**:
-- [ ] No hardcoded secrets
-- [ ] Sensitive data encrypted
-- [ ] SQL injection prevention
-- [ ] XSS prevention
-- [ ] CSRF protection
-
-**Dependencies**:
-- [ ] No vulnerable packages
-- [ ] Dependencies up-to-date
-- [ ] Minimal dependency usage
-
-### Step 5: Performance review
-
-**Algorithms**:
-- [ ] Appropriate algorithm choice
-- [ ] Reasonable time complexity
-- [ ] Reasonable space complexity
-- [ ] No unnecessary loops
-
-**Database**:
-- [ ] Efficient queries
-- [ ] Proper indexing
-- [ ] N+1 query prevention
-- [ ] Connection pooling
-
-**Caching**:
-- [ ] Appropriate caching strategy
-- [ ] Cache invalidation handled
-- [ ] Memory usage reasonable
-
-**Resource management**:
-- [ ] Files properly closed
-- [ ] Connections released
-- [ ] Memory leaks prevented
-
-### Step 6: Testing review
-
-**Test coverage**:
-- [ ] Unit tests for new code
-- [ ] Integration tests if needed
-- [ ] Edge cases covered
-- [ ] Error cases tested
-
-**Test quality**:
-- [ ] Tests are readable
-- [ ] Tests are maintainable
-- [ ] Tests are deterministic
-- [ ] No test interdependencies
-- [ ] Proper test data setup/teardown
-
-**Test naming**:
-```python
-# Good
-def test_user_creation_with_valid_data_succeeds():
-    pass
-
-# Bad
-def test1():
-    pass
-```
-
-### Step 7: Documentation review
-
-**Code comments**:
-- [ ] Complex logic explained
-- [ ] No obvious comments
-- [ ] TODOs have tickets
-- [ ] Comments are accurate
-
-**Function documentation**:
-```python
-def calculate_total(items: List[Item], tax_rate: float) -> Decimal:
-    """
-    Calculate the total price including tax.
-
-    Args:
-        items: List of items to calculate total for
-        tax_rate: Tax rate as decimal (e.g., 0.1 for 10%)
-
-    Returns:
-        Total price including tax
-
-    Raises:
-        ValueError: If tax_rate is negative
-    """
-    pass
-```
-
-**README/docs**:
-- [ ] README updated if needed
-- [ ] API docs updated
-- [ ] Migration guide if breaking changes
-
-### Step 8: Provide feedback
-
-**Be constructive**:
-```
-✅ Good:
-"Consider extracting this logic into a separate function for better
-testability and reusability:
-
-def validate_email(email: str) -> bool:
-    return '@' in email and '.' in email.split('@')[1]
-
-This would make it easier to test and reuse across the codebase."
-
-❌ Bad:
-"This is wrong. Rewrite it."
-```
-
-**Be specific**:
-```
-✅ Good:
-"On line 45, this query could cause N+1 problem. Consider using
-.select_related('author') to fetch related objects in a single query."
-
-❌ Bad:
-"Performance issues here."
-```
-
-**Prioritize issues**:
-- 🔴 Critical: Security, data loss, major bugs
-- 🟡 Important: Performance, maintainability
-- 🟢 Nice-to-have: Style, minor improvements
-
-**Acknowledge good work**:
-```
-"Nice use of the strategy pattern here! This makes it easy to add
-new payment methods in the future."
-```
-
-## Review checklist
-
-### Functionality
-- [ ] Code does what it's supposed to do
-- [ ] Edge cases handled
-- [ ] Error cases handled
-- [ ] No obvious bugs
-
-### Code Quality
-- [ ] Clear, descriptive naming
-- [ ] Functions are small and focused
-- [ ] No code duplication
-- [ ] Consistent with codebase style
-- [ ] No code smells
-
-### Security
-- [ ] Input validation
-- [ ] No hardcoded secrets
-- [ ] Authentication/authorization
-- [ ] No SQL injection vulnerabilities
-- [ ] No XSS vulnerabilities
-
-### Performance
-- [ ] No obvious bottlenecks
-- [ ] Efficient algorithms
-- [ ] Proper database queries
-- [ ] Resource management
-
-### Testing
-- [ ] Tests included
-- [ ] Good test coverage
-- [ ] Tests are maintainable
-- [ ] Edge cases tested
-
-### Documentation
-- [ ] Code is self-documenting
-- [ ] Comments where needed
-- [ ] Docs updated
-- [ ] Breaking changes documented
-
-## Common issues
-
-### Anti-patterns
-
-**God class**:
-```python
-# Bad: One class doing everything
-class UserManager:
-    def create_user(self): pass
-    def send_email(self): pass
-    def process_payment(self): pass
-    def generate_report(self): pass
-```
-
-**Magic numbers**:
-```python
-# Bad
-if user.age > 18:
-    pass
-
-# Good
-MINIMUM_AGE = 18
-if user.age > MINIMUM_AGE:
-    pass
-```
-
-**Deep nesting**:
-```python
-# Bad
-if condition1:
-    if condition2:
-        if condition3:
-            if condition4:
-                # deeply nested code
-
-# Good (early returns)
-if not condition1:
-    return
-if not condition2:
-    return
-if not condition3:
-    return
-if not condition4:
-    return
-# flat code
-```
-
-### Security vulnerabilities
-
-**SQL Injection**:
-```python
-# Bad
-query = f"SELECT * FROM users WHERE id = {user_id}"
-
-# Good
-query = "SELECT * FROM users WHERE id = %s"
-cursor.execute(query, (user_id,))
-```
-
-**XSS**:
-```javascript
-// Bad
-element.innerHTML = userInput;
-
-// Good
-element.textContent = userInput;
-```
-
-**Hardcoded secrets**:
-```python
-# Bad
-API_KEY = "sk-1234567890abcdef"
-
-# Good
-API_KEY = os.environ.get("API_KEY")
-```
-
-## Best practices
-
-1. **Review promptly**: Don't make authors wait
-2. **Be respectful**: Focus on code, not the person
-3. **Explain why**: Don't just say what's wrong
-4. **Suggest alternatives**: Show better approaches
-5. **Use examples**: Code examples clarify feedback
-6. **Pick your battles**: Focus on important issues
-7. **Acknowledge good work**: Positive feedback matters
-8. **Review your own code first**: Catch obvious issues
-9. **Use automated tools**: Let tools catch style issues
-10. **Be consistent**: Apply same standards to all code
-
-## Tools to use
-
-**Linters**:
-- Python: pylint, flake8, black
-- JavaScript: eslint, prettier
-- Go: golint, gofmt
-- Rust: clippy, rustfmt
-
-**Security**:
-- Bandit (Python)
-- npm audit (Node.js)
-- OWASP Dependency-Check
-
-**Code quality**:
-- SonarQube
-- CodeClimate
-- Codacy
-
-## References
-
-- [Google Code Review Guidelines](https://google.github.io/eng-practices/review/)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [Clean Code by Robert C. Martin](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882)
-
-## Examples
-
-### Example 1: Basic usage
-<!-- Add example content here -->
-
-### Example 2: Advanced usage
-<!-- Add advanced example content here -->
+- **Standards** — does the code conform to this repo's documented coding standards?
+- **Spec** — does the code faithfully implement the originating issue / PRD / spec?
+
+Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+
+The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
+
+## Process
+
+### 1. Pin the fixed point
+
+Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.
+
+Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
+
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
+
+### 2. Identify the spec source
+
+Look for the originating spec, in this order:
+
+1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
+2. A path the user passed as an argument.
+3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
+4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+
+### 3. Identify the standards sources
+
+Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+
+On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
+
+- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
+- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation — and, like any standard here, skip anything tooling already enforces.
+
+Each smell reads *what it is* → *how to fix*; match it against the diff:
+
+- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
+- **Duplicated Code** — the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
+- **Feature Envy** — a method that reaches into another object's data more than its own. → move the method onto the data it envies.
+- **Data Clumps** — the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
+- **Primitive Obsession** — a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
+- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
+- **Shotgun Surgery** — one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
+- **Divergent Change** — one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
+- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
+- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
+- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
+- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
+
+### 4. Spawn both sub-agents in parallel
+
+Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.
+
+**Standards sub-agent prompt** — include:
+
+- The full diff command and commit list.
+- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
+- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+
+**Spec sub-agent prompt** — include:
+
+- The diff command and commit list.
+- The path or fetched contents of the spec.
+- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+
+If the spec is missing, skip the Spec sub-agent and note this in the final report.
+
+### 5. Aggregate
+
+Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
+
+End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+
+## Why two axes
+
+A change can pass one axis and fail the other:
+
+- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
+- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+
+Reporting them separately stops one axis from masking the other.
