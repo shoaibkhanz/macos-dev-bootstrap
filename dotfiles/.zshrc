@@ -83,11 +83,11 @@ alias cc="claude"              # Claude CLI
 alias cx="codex"              # Claude CLI
 
 # --- Herdr (terminal workspace manager) ---
-alias h="herdr"                          # Launch / attach session
-alias hd="herdr"                         # Launch / attach session (matches config refs)
+alias hd="herdr"                         # Launch / attach session
 alias hds="herdr status"                 # Client + server status
 alias hdp="herdr plugin list"            # List installed plugins
 alias hdrc="herdr server reload-config"  # Reload config.toml in running server
+alias hdk="herdr server stop"            # Stop (kill) the running herdr server
 alias hdu="herdr update"                 # Update herdr to latest
 
 # --- Python/UV (fast Python package manager) ---
