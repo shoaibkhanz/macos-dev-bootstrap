@@ -1,0 +1,21 @@
+# Yugen UI
+# Same Yugen spine, but the accent is your which-key blue (#87afff), matching
+# nvim's UI chrome rather than its syntax. Peach is freed to mean "needs you".
+# Paste this block over [theme.custom] in ../config.toml, then run `hdrc`.
+[theme.custom]
+panel_bg    = "#000000"
+surface_dim = "#000000"
+surface0    = "#0e0e0e"
+surface1    = "#1a1a1a"
+overlay0    = "#444444"
+overlay1    = "#777777"
+text        = "#d4d4d4"
+subtext0    = "#888888"
+accent      = "#87afff"
+green       = "#7eab8e"
+yellow      = "#d8b46f"
+red         = "#cf8b82"
+blue        = "#87afff"
+teal        = "#7fb0a6"
+mauve       = "#b294bb"
+peach       = "#ffbe89"

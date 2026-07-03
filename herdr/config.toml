@@ -21,27 +21,28 @@ name = "vesper"
 
 auto_switch = false
 
-# Vesper palette as explicit tokens. herdr already renders vesper; these are
-# here so herdr-picker-plus (which doesn't know the "vesper" theme name and
-# would otherwise fall back to its light default) inherits vesper too.
-# Source: canonical Vesper palette (Ghostty theme).
+# === Active theme: Yugen True ===
+# herdr UI palette matched to the Yugen colorscheme (nvim) on pure black, so
+# herdr's chrome + the picker sit seamlessly around the black Ghostty terminal
+# and Yugen nvim. Accent is Yugen's peach. To switch to another recorded theme,
+# copy a block from herdr/themes/ over this one and run `hdrc` (reload-config).
 [theme.custom]
-panel_bg    = "#101010"
-surface_dim = "#161616"
-surface0    = "#1c1c1c"
-surface1    = "#282828"
-overlay0    = "#7e7e7e"
-overlay1    = "#a0a0a0"
-text        = "#ffffff"
-subtext0    = "#a0a0a0"
-accent      = "#ffc799"
-green       = "#90b99f"
-yellow      = "#e6b99d"
-red         = "#ff8080"
-blue        = "#aca1cf"
-teal        = "#99ffe4"
-mauve       = "#e29eca"
-peach       = "#ffc799"
+panel_bg    = "#000000"
+surface_dim = "#000000"
+surface0    = "#0e0e0e"
+surface1    = "#1a1a1a"
+overlay0    = "#444444"
+overlay1    = "#777777"
+text        = "#d4d4d4"
+subtext0    = "#888888"
+accent      = "#ffbe89"
+green       = "#7eab8e"
+yellow      = "#d8b46f"
+red         = "#cf8b82"
+blue        = "#87afff"
+teal        = "#7fb0a6"
+mauve       = "#b294bb"
+peach       = "#ffbe89"
 
 [terminal]
 # Executable used for new interactive panes.

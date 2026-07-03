@@ -1,0 +1,20 @@
+# Vesper (previous theme, kept for reference)
+# Canonical Vesper palette (Ghostty theme). Warmer/lighter than the Yugen set.
+# Paste this block over [theme.custom] in ../config.toml, then run `hdrc`.
+[theme.custom]
+panel_bg    = "#101010"
+surface_dim = "#161616"
+surface0    = "#1c1c1c"
+surface1    = "#282828"
+overlay0    = "#7e7e7e"
+overlay1    = "#a0a0a0"
+text        = "#ffffff"
+subtext0    = "#a0a0a0"
+accent      = "#ffc799"
+green       = "#90b99f"
+yellow      = "#e6b99d"
+red         = "#ff8080"
+blue        = "#aca1cf"
+teal        = "#99ffe4"
+mauve       = "#e29eca"
+peach       = "#ffc799"
