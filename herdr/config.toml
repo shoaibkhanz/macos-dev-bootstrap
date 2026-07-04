@@ -202,6 +202,20 @@ type = "plugin_action"
 command = "vim-herdr-navigation.right"
 description = "vim-herdr-navigation: right"
 
+## Plugin reviewr — toggle the review sidebar (also auto-opens per worktree)
+[[keys.command]]
+key = "prefix+g"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "reviewr: toggle review sidebar"
+
+## Plugin Workspace Manager — apply the declarative layout to this workspace
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "herdr-plugin-workspace-manager.apply"
+description = "workspace-manager: apply layout"
+
 # Legacy indexed shortcut config is still parsed for compatibility.
 # Prefer switch_tab, switch_workspace, and focus_agent for new configs.
 # [keys.indexed]
