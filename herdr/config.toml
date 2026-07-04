@@ -258,7 +258,12 @@ show_agent_labels_on_pane_borders = true
 
 # Accent color for highlights, borders, and navigation UI.
 # Accepts: hex (#89b4fa), named colors (cyan, blue, magenta), or rgb(r,g,b)
-# accent = "cyan"
+accent = "#ffbe89"   # Yugen peach — matches [theme.custom]
+
+# Pane separation: draw borders, but share dividers instead of leaving gaps
+# (tighter, cleaner). Set pane_gaps = true to reinstate the gapped look.
+pane_borders = true
+pane_gaps = false
 
 # Background notification popup delivery
 [ui.toast]
