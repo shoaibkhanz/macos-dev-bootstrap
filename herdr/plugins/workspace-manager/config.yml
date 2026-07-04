@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/razajamil/herdr-plugin-workspace-manager/main/schema.json
+#
+# herdr-plugin-workspace-manager — declarative per-worktree layouts.
+#
+# Authoritative copy lives here in the dotfiles repo. The live plugin path
+#   ~/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml
+# is a symlink to this file, so editing here IS the live config.
+#
+# A new linked worktree of a mapped repo opens straight into its layout.
+# Or apply manually in a workspace with `prefix+a` (workspace-manager: apply).
+# reviewr auto-opens its review sidebar per worktree, so no review tab is needed.
+
+layouts:
+  # Full agent session: agent + editor side by side, plus a git tab.
+  - id: agent-dev
+    tabs:
+      - title: code
+        panes:
+          - title: agent
+            command: claude
+          - title: editor
+            command: nvim
+            split: vertical
+      - title: git
+        panes:
+          - title: lazygit
+            command: lazygit
+
+  # Quick fix branch: just agent + editor, no git tab.
+  - id: hotfix
+    tabs:
+      - title: code
+        panes:
+          - title: agent
+            command: claude
+          - title: editor
+            command: nvim
+            split: vertical
+
+  # Docs / research: editor + shell, no agent.
+  - id: docs
+    tabs:
+      - title: docs
+        panes:
+          - title: editor
+            command: nvim
+          - title: shell
+            split: vertical
+
+workspaces:
+  # Worked example — every linked worktree of this repo gets agent-dev,
+  # unless the branch matches a more specific rule below.
+  - repo: ~/code/macos-dev-bootstrap
+    defaultLayout: agent-dev
+    layoutMatching:
+      - title: Fix branches
+        worktreePattern: fix/*
+        layout: hotfix
+      - title: Docs branches
+        worktreePattern: docs/*
+        layout: docs
+
+  # Add your project repos here, e.g.:
+  # - repo: ~/code/experiments/state
+  #   defaultLayout: agent-dev
