@@ -254,7 +254,11 @@ prompt_new_tab_name = false
 show_agent_labels_on_pane_borders = true
 
 # Agent panel scope: "current" or "all". Toggling it in the sidebar saves this setting.
-# agent_panel_scope = "all"
+agent_panel_scope = "all"      # see every agent across all workspaces, not just the current one
+
+# Agent panel ordering: "spaces" (grouped by workspace) or "priority" (attention queue:
+# blocked/error → needs-you → done → working → idle). Priority floats what needs you to the top.
+agent_panel_sort = "priority"
 
 # Accent color for highlights, borders, and navigation UI.
 # Accepts: hex (#89b4fa), named colors (cyan, blue, magenta), or rgb(r,g,b)
@@ -272,9 +276,9 @@ pane_gaps = false
 # terminal = ask the outer terminal to show a desktop notification
 # system = ask the OS notification service directly
 # delivery = "off"
+delivery = "system"   # macOS desktop notifications when an agent needs you / finishes
 
 # Play sounds when agents change state in background workspaces
-delivery = "system"
 [ui.sound]
 # enabled = true
 # Optional custom mp3 sound files. Relative paths are resolved from this config file's directory.
