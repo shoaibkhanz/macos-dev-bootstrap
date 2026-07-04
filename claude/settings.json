@@ -37,9 +37,9 @@
     }
   },
   "effortLevel": "high",
+  "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
-  "tui": "fullscreen"
+  "voiceEnabled": true
 }
