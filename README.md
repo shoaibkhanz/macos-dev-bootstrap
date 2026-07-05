@@ -43,14 +43,16 @@ To mark additional packages as personal-only, move them inside the `unless work?
 
 1. **Installs Homebrew** (if not present)
 2. **Installs all packages** from `Brewfile` (CLI tools, apps, fonts) — `--work` skips personal-only entries
-3. **Configures macOS** settings: faster keyboard, no auto-correct, Raycast hotkey
-4. **Backs up existing configs** to `~/.config-backup-YYYYMMDD-HHMMSS/` (preserves path structure to avoid filename collisions)
-5. **Creates symlinks** from your home directory to this repo
-6. **Configures git globals** — `core.excludesfile`, and (if `delta` is installed) `core.pager`, `interactive.diffFilter`, `delta.navigate`, `delta.line-numbers`, `merge.conflictstyle = zdiff3`
-7. **Sets zsh as default shell** (adds to `/etc/shells` if needed)
-8. **Installs TPM and tmux plugins** (auto-installs, no manual step needed)
-9. **Installs Neovim providers** (Python via uv, Ruby, Node, Mermaid CLI)
-10. **Creates secrets template** at `~/.secrets.example`
+3. **Installs Claude Code and omp** via their official installers (`curl … | bash` / `sh`), not Homebrew — skipped if already present
+4. **Installs herdr agent integrations** (`pi`, `omp`, `claude`) — skipped if herdr isn't on `PATH`; a missing agent warns and continues
+5. **Configures macOS** settings: faster keyboard, no auto-correct, Raycast hotkey
+6. **Backs up existing configs** to `~/.config-backup-YYYYMMDD-HHMMSS/` (preserves path structure to avoid filename collisions)
+7. **Creates symlinks** from your home directory to this repo
+8. **Configures git globals** — `core.excludesfile`, and (if `delta` is installed) `core.pager`, `interactive.diffFilter`, `delta.navigate`, `delta.line-numbers`, `merge.conflictstyle = zdiff3`
+9. **Sets zsh as default shell** (adds to `/etc/shells` if needed)
+10. **Installs TPM and tmux plugins** (auto-installs, no manual step needed)
+11. **Installs Neovim providers** (Python via uv, Ruby, Node, Mermaid CLI)
+12. **Creates secrets template** at `~/.secrets.example`
 
 Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nvim/` are automatically reflected in this repo.
 
@@ -147,7 +149,13 @@ docker, docker-compose, lazydocker
 btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
 **Apps:**
-ghostty, raycast, claude-code, codex, cmux, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): handy.
+ghostty, raycast, codex, cmux, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): handy.
+
+**Installed via official installers (not Homebrew):**
+- **Claude Code** — `curl -fsSL https://claude.ai/install.sh | bash`
+- **omp** (Oh My Pi) — `curl -fsSL https://omp.sh/install | sh`
+
+**Herdr agent integrations:** `install.sh` runs `herdr integration install` for `pi`, `omp`, and `claude` (skipped if `herdr` is not on `PATH`).
 
 ### macOS Optimizations
 

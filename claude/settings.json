@@ -1,47 +1,57 @@
 {
-  "permissions": {
-    "defaultMode": "auto"
-  },
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.agents/hooks/session-start.sh",
-            "async": false
-          }
-        ]
-      }
-    ]
-  },
+  "agentPushNotifEnabled": true,
+  "effortLevel": "high",
   "enabledPlugins": {
-    "plannotator@plannotator": true,
     "context7@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "terraform-skill@antonbabenko": true,
-    "linear@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
     "devops-automation-pack@claude-code-plugins-plus": true,
-    "frontend-design@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true,
     "everything-claude-code@everything-claude-code": true,
-    "logfire@pydantic-skills": false
+    "frontend-design@claude-plugins-official": true,
+    "linear@claude-plugins-official": false,
+    "logfire@pydantic-skills": false,
+    "lua-lsp@claude-plugins-official": true,
+    "plannotator@plannotator": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
+    "terraform-skill@antonbabenko": true
   },
   "extraKnownMarketplaces": {
     "everything-claude-code": {
       "source": {
-        "source": "github",
-        "repo": "affaan-m/everything-claude-code"
+        "repo": "affaan-m/everything-claude-code",
+        "source": "github"
       }
     }
   },
-  "effortLevel": "high",
-  "tui": "fullscreen",
-  "skipWorkflowUsageWarning": true,
-  "agentPushNotifEnabled": true,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "async": false,
+            "command": "~/.agents/hooks/session-start.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash '/Users/shoaib/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ]
+  },
+  "model": "opus[1m]",
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
-  "model": "opus[1m]"
+  "skipWorkflowUsageWarning": true,
+  "tui": "fullscreen",
+  "voiceEnabled": true
 }

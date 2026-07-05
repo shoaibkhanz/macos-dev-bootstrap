@@ -110,7 +110,7 @@ brew "postgresql@14"
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
 cask "manaflow-ai/cmux/cmux"  # AI agent terminal manager
-cask "claude-code"     # Claude CLI agent
+# claude-code — installed via the official installer in install.sh (curl … | bash), not Homebrew
 cask "codex"           # OpenAI coding agent
 cask "gcloud-cli"      # Google Cloud SDK
 cask "ngrok"           # Secure tunnelling

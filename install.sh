@@ -186,6 +186,45 @@ install_packages() {
     fi
 }
 
+install_claude_code() {
+    info "Installing Claude Code (official installer, not Homebrew)..."
+    if command -v claude &> /dev/null; then
+        success "Claude Code already installed; skipping (re-run the installer to update)"
+        return
+    fi
+    # Anthropic's official installer — deliberately NOT the Homebrew cask.
+    run bash -c "curl -fsSL https://claude.ai/install.sh | bash"
+    success "Claude Code installed via official installer"
+}
+
+install_omp() {
+    info "Installing omp (Oh My Pi harness)..."
+    if command -v omp &> /dev/null; then
+        success "omp already installed; skipping (re-run the installer to update)"
+        return
+    fi
+    # Official omp installer — deliberately NOT Homebrew. Installs to ~/.local/bin (on PATH via .zshrc).
+    run bash -c "curl -fsSL https://omp.sh/install | sh"
+    success "omp installed via official installer"
+}
+
+configure_herdr_integrations() {
+    info "Installing herdr agent integrations (pi, omp, claude)..."
+    if ! command -v herdr &> /dev/null; then
+        warn "herdr not on PATH — skipping. Once herdr is installed, run:"
+        warn "  herdr integration install pi && herdr integration install omp && herdr integration install claude"
+        return
+    fi
+    # Each install writes that agent's herdr state extension (e.g. ~/.claude/hooks/herdr-agent-state.sh).
+    # Server-independent, so it's safe during a fresh bootstrap. Non-fatal: an agent not yet installed
+    # (e.g. pi with no ~/.pi/agent/extensions dir) exits non-zero — warn and continue instead of
+    # aborting under `set -e`.
+    for agent in pi omp claude; do
+        run herdr integration install "$agent" || warn "herdr integration for '$agent' skipped (is $agent installed?)"
+    done
+    success "herdr integrations configured (pi, omp, claude)"
+}
+
 configure_macos() {
     info "Configuring macOS settings..."
 
@@ -583,6 +622,9 @@ main() {
         clear_cask_conflicts
         install_packages
     fi
+    install_claude_code
+    install_omp
+    configure_herdr_integrations
     configure_macos
     backup_existing
     create_symlinks
