@@ -85,9 +85,14 @@ reload_config = "prefix+r"
 # workspace_picker = "prefix+w" # navigate mode
 goto = "prefix+s"
 new_workspace = "prefix+shift+w"
-# new_worktree = "prefix+shift+g"
-# open_worktree = ""    # optional, unset by default
-# remove_worktree = ""  # optional, unset by default; opens confirmation
+# Herdr's built-in git-worktree actions are disabled — I don't use them. The
+# default `new_worktree` binding (prefix+shift+g) fires herdr's "worktree
+# actions require a workspace inside a Git work tree" warning whenever it's
+# triggered from a workspace that isn't inside a git repo (e.g. ~/.config/herdr).
+# Empty string = unbound; that stops the stray warning at the source.
+new_worktree = ""
+open_worktree = ""
+remove_worktree = ""
 rename_workspace = "prefix+$"
 # close_workspace = "prefix+shift+d"
 # previous_workspace = "" # optional, unset by default
