@@ -66,6 +66,19 @@ add_newline = true
 palette = "catppuccin_mocha"
 
 # ----------------------------------------------------------------------------
+# Command / scan timeouts
+# ----------------------------------------------------------------------------
+# Starship's defaults (command_timeout 500ms, scan_timeout 30ms) are too tight
+# on macOS when many herdr panes / agents are spawning processes at once: the
+# custom modules (agent, agent_task, worktree, aws, gcloud) and the built-in
+# version probes (python/node/git) then blow the budget, so starship prints
+# `[WARN] - (starship::...): Executing ... timed out.` into every pane. These
+# commands are all fast normally (git/ls/test/printf/--version); they only trip
+# the limit under spawn contention. Raise both to give them headroom.
+command_timeout = 2000
+scan_timeout = 100
+
+# ----------------------------------------------------------------------------
 # Palette: Catppuccin Mocha
 # ----------------------------------------------------------------------------
 # Reference these colours by name in any module via `style = "peach"` etc.
