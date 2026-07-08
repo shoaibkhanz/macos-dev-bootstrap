@@ -163,6 +163,19 @@ navigate_workspace_down = "ctrl+j"
 # command = "spf"
 # description = "Opens Superfile"
 
+# === Installed plugins ===
+# Managed by herdr's built-in plugin manager (`herdr plugin list`).
+# Reinstall on a new machine with: herdr plugin install <owner>/<repo>
+#
+#   cloudmanic.herdr-plus            (Herdr Plus)           github.com/cloudmanic/herdr-plus
+#   herdr-picker-plus                (Picker Plus)          github.com/thanhdat77/herdr-picker-plus
+#   herdr-plugin-workspace-manager   (Workspace Manager)    github.com/razajamil/herdr-plugin-workspace-manager
+#   persiyanov.reviewr               (reviewr)              github.com/persiyanov/herdr-reviewr
+#   vim-herdr-navigation             (Vim Herdr Navigation) github.com/paulbkim-dev/vim-herdr-navigation
+#
+# Per-plugin config lives in ~/.config/herdr/plugins/config/<plugin_id>.
+# Keybindings for their actions follow below.
+
 ## Plugin Herdr Plus - Quick Actions
 [[keys.command]]
 key = "prefix+y"
