@@ -86,7 +86,7 @@ Currently skipped under `--work`: `handy`. Add more by moving them inside the `u
 ### Terminal Multiplexer (tmux)
 - **Yugen theme** - Dark, minimal aesthetic
 - **TPM plugins** - resurrect, continuum, vim-navigator (auto-installed)
-- **Prefix: Ctrl-a** - Easier than default Ctrl-b
+- **Prefix: Ctrl-s** - herdr owns Ctrl-a as its prefix, so tmux uses Ctrl-s to avoid a collision
 - **Vi mode** - Vim keybindings in copy mode
 
 ### Editor (Neovim)

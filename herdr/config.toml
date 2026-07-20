@@ -3,7 +3,7 @@ onboarding = false
 
 [keys]
 # Prefix key (herdr default). Press it, release, then the bound key.
-prefix = "ctrl+s"
+prefix = "ctrl+a"
 
 # prefix+j / prefix+k are repurposed below for agent navigation, so disable the
 # default focus_pane_down/up (prefix+j/k) to avoid key conflicts. Pane movement
@@ -17,7 +17,7 @@ focus_pane_up = ""
 # no longer switch tabs.
 # CAVEAT 1 (if these do nothing): rebinding a BUILT-IN action is startup-only —
 #   `herdr server reload-config` will NOT pick it up. Detach + reattach the
-#   client (ctrl+s q, then `herdr`) or `herdr server stop` and relaunch.
+#   client (ctrl+a q, then `herdr`) or `herdr server stop` and relaunch.
 # CAVEAT 2: the terminal may swallow Ctrl+n/Ctrl+p; if so, try alt+n / alt+p.
 # CAVEAT 3: herdr captures these globally, so <C-n>/<C-p> completion in Neovim
 #   and Ctrl+p/Ctrl+n history in shells/fzf are shadowed inside panes. To get
@@ -27,7 +27,7 @@ previous_tab = "ctrl+p"
 
 # Active Agent Jump plugin (local: ~/code/herdr-active-agent-jump): cycle focus
 # through ACTIVE agents (working or blocked). j = next, k = previous.
-# Press ctrl+b, release, then j / k.
+# Press ctrl+a, release, then j / k.
 [[keys.command]]
 key = "prefix+j"
 type = "plugin_action"
