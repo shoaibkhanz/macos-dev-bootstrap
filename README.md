@@ -35,6 +35,7 @@ cd macos-dev-bootstrap
 | `--dry-run` | Print every action without making changes |
 | `--skip-brew` | Skip Homebrew install and `brew bundle` |
 | `--work` | Skip personal-only Brewfile entries (sets `HOMEBREW_BUNDLE_WORK=1`) |
+| `--herdr` | Only refresh herdr config + integrations, then exit (skips the full bootstrap) |
 | `--help` | Show usage |
 
 To mark additional packages as personal-only, move them inside the `unless work?` block in `Brewfile`.
@@ -116,7 +117,8 @@ Currently skipped under `--work`: `handy`. Add more by moving them inside the `u
 - **Theme** - Vesper theme
 - **Toast delivery** - System notifications
 - **Safe prefix bindings** - Tab navigation and rename use the Herdr prefix to avoid intercepting normal typing
-- **Config-only symlink** - `config.toml` is managed while logs, sockets, and session state stay local
+- **Managed symlinks** - `config.toml` and the workspace-manager plugin config (`plugins/workspace-manager/config.yml` → `~/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml`) are symlinked; logs, sockets, and session state stay local. Themes in `herdr/themes/` are a reference library (palettes are pasted into `config.toml`), not symlinked.
+- **Fast refresh** - `./install.sh --herdr` re-links the herdr configs and re-runs `herdr integration install` for `pi`/`omp`/`claude` without running the rest of the installer — run it after pulling latest herdr changes.
 
 ### Global Gitignore
 Automatically ignores across all repos:

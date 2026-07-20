@@ -25,6 +25,7 @@ BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
 DRY_RUN=false
 SKIP_BREW=false
 WORK_MODE=false
+HERDR_ONLY=false
 
 # =============================================================================
 # Helper Functions
@@ -55,6 +56,49 @@ run() {
     fi
 }
 
+# Helper: create or update a symlink (backs up existing non-symlink files first)
+link_file() {
+    local source="$1"
+    local target="$2"
+
+    if [ ! -e "$source" ]; then
+        warn "Source not found, skipping: $source"
+        return
+    fi
+
+    # Remove existing file/symlink
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        run rm -rf "$target"
+    fi
+
+    # Create parent directory if needed
+    run mkdir -p "$(dirname "$target")"
+
+    # Create symlink
+    run ln -sf "$source" "$target"
+    success "Linked: $target -> $source"
+}
+
+# Symlink every tracked herdr config into the live ~/.config/herdr tree.
+# Shared by the full install (create_symlinks) and the --herdr fast path.
+link_herdr_configs() {
+    # Main config.
+    link_file "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+    # workspace-manager plugin layouts. The plugin reads its config from
+    # ~/.config/herdr/plugins/config/<plugin-id>/config.yml, so link it there.
+    link_file "$SCRIPT_DIR/herdr/plugins/workspace-manager/config.yml" \
+        "$HOME/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml"
+}
+
+# --herdr fast path: refresh only herdr config + integrations, wherever run.
+update_herdr() {
+    info "Updating herdr configuration from $SCRIPT_DIR/herdr..."
+    run mkdir -p "$HOME/.config/herdr"
+    link_herdr_configs
+    configure_herdr_integrations
+    success "Herdr configuration updated."
+}
+
 # =============================================================================
 # Pre-flight Checks
 # =============================================================================
@@ -81,13 +125,18 @@ parse_args() {
                 WORK_MODE=true
                 warn "Work mode enabled. Personal-only packages will be skipped."
                 ;;
+            --herdr)
+                HERDR_ONLY=true
+                warn "Herdr-only mode: refreshing herdr config + integrations only."
+                ;;
             --help|-h)
-                echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--help]"
+                echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--herdr] [--help]"
                 echo ""
                 echo "Options:"
                 echo "  --dry-run    Preview changes without making them"
                 echo "  --skip-brew  Skip Homebrew install and brew bundle"
                 echo "  --work       Skip personal-only packages (e.g. handy)"
+                echo "  --herdr      Only refresh herdr config + integrations (skip everything else)"
                 echo "  --help       Show this help message"
                 exit 0
                 ;;
@@ -347,29 +396,6 @@ create_symlinks() {
     # Ensure .config directory exists
     run mkdir -p "$HOME/.config"
 
-    # Helper: create or update a symlink (backs up existing non-symlink files first)
-    link_file() {
-        local source="$1"
-        local target="$2"
-
-        if [ ! -e "$source" ]; then
-            warn "Source not found, skipping: $source"
-            return
-        fi
-
-        # Remove existing file/symlink
-        if [ -e "$target" ] || [ -L "$target" ]; then
-            run rm -rf "$target"
-        fi
-
-        # Create parent directory if needed
-        run mkdir -p "$(dirname "$target")"
-
-        # Create symlink
-        run ln -sf "$source" "$target"
-        success "Linked: $target -> $source"
-    }
-
     # Create symlinks for each config
     link_file "$SCRIPT_DIR/dotfiles/.zshrc" "$HOME/.zshrc"
     link_file "$SCRIPT_DIR/dotfiles/.tmux.conf" "$HOME/.tmux.conf"
@@ -378,7 +404,7 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/ghostty" "$HOME/.config/ghostty"
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
     link_file "$SCRIPT_DIR/lazygit" "$HOME/.config/lazygit"
-    link_file "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+    link_herdr_configs
 
     # Claude Code: agents (skills, hooks, commands)
     link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
@@ -616,6 +642,15 @@ main() {
 
     parse_args "$@"
     check_macos
+
+    if [ "$HERDR_ONLY" = true ]; then
+        update_herdr
+        if [ "$DRY_RUN" = true ]; then
+            echo ""
+            echo -e "${YELLOW}This was a dry run. No changes were made.${NC}"
+        fi
+        return
+    fi
 
     if [ "$SKIP_BREW" = false ]; then
         install_homebrew
