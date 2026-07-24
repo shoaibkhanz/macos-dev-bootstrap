@@ -40,5 +40,14 @@ return {
       LSPLoading9 = "⠇",
       LSPLoading10 = "⠏",
     },
+    -- Highlight the current/active buffer tab in the tabline with orange
+    status = {
+      colors = function(colors)
+        local orange = "#ff9e64"
+        colors.buffer_active_fg = orange
+        colors.buffer_active_close_fg = orange
+        return colors
+      end,
+    },
   },
 }
