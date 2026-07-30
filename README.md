@@ -50,11 +50,12 @@ To mark additional packages as personal-only, move them inside the `unless work?
 5. **Configures macOS** settings: faster keyboard, no auto-correct, Raycast hotkey
 6. **Backs up existing configs and creates symlinks** — backup goes to `~/.config-backup-YYYYMMDD-HHMMSS/` (path structure preserved to avoid filename collisions); the symlinks and the Marimo config are written in the same step, so a failed backup stops the overwrite instead of clobbering configs that were never copied
 7. Symlinks point from your home directory into this repo — Claude/agent config (`~/.claude/{skills,rules,commands,settings.json}`, `~/.agents/{skills,hooks,commands}`) is **skipped unless you pass `--claude`**, so pulling this repo onto another machine never clobbers its own skills/settings
-8. **Configures git globals** — `core.excludesfile`, and (if `delta` is installed) `core.pager`, `interactive.diffFilter`, `delta.navigate`, `delta.line-numbers`, `merge.conflictstyle = zdiff3`
-9. **Sets zsh as default shell** (adds to `/etc/shells` if needed)
-10. **Installs TPM and tmux plugins** — TPM is always cloned; the plugin install is skipped and reported as a failed step if `tmux` isn't on `PATH` (e.g. after a failed `brew bundle`)
-11. **Installs Neovim providers** (Python via uv, Ruby, Node, Mermaid CLI)
-12. **Creates secrets template** at `~/.secrets.example`
+8. **Installs herdr plugins** from GitHub (`herdr plugin install`) for every plugin `herdr/config.toml` binds a key to — skipped if herdr isn't on `PATH`, and a locally linked plugin is left as-is
+9. **Configures git globals** — `core.excludesfile`, and (if `delta` is installed) `core.pager`, `interactive.diffFilter`, `delta.navigate`, `delta.line-numbers`, `merge.conflictstyle = zdiff3`
+10. **Sets zsh as default shell** (adds to `/etc/shells` if needed)
+11. **Installs TPM and tmux plugins** — TPM is always cloned; the plugin install is skipped and reported as a failed step if `tmux` isn't on `PATH` (e.g. after a failed `brew bundle`)
+12. **Installs Neovim providers** (Python via uv, Ruby, Node, Mermaid CLI)
+13. **Creates secrets template** at `~/.secrets.example`
 
 Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nvim/` are automatically reflected in this repo.
 
@@ -129,7 +130,15 @@ will never install.
 - **Toast delivery** - System notifications
 - **Safe prefix bindings** - Tab navigation and rename use the Herdr prefix to avoid intercepting normal typing
 - **Managed symlinks** - `config.toml` and the workspace-manager plugin config (`plugins/workspace-manager/config.yml` → `~/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml`) are symlinked; logs, sockets, and session state stay local. Themes in `herdr/themes/` are a reference library (palettes are pasted into `config.toml`), not symlinked.
-- **Fast refresh** - `./install.sh --herdr` re-links the herdr configs and re-runs `herdr integration install` for `pi`/`omp`/`claude` without running the rest of the installer — run it after pulling latest herdr changes.
+- **Plugins** - `install.sh` installs every plugin the keybindings in `herdr/config.toml` address (`HERDR_PLUGINS` in `install.sh`); a binding whose plugin is missing resolves to `plugin_not_found` and the key silently does nothing. Verify with `herdr plugin list`. They need **Node.js** on `PATH`. A plugin you have linked locally (`herdr plugin link`, for plugin development) is left untouched.
+
+  | Plugin id | Source | Keys |
+  |---|---|---|
+  | `herdr-nav-plus` | [shoaibkhanz/herdr-nav-plus](https://github.com/shoaibkhanz/herdr-nav-plus) | direct `Ctrl+h/j/k/l` — vim split → pane → workspace (paired with `nvim/after/plugin/herdr_nav.lua`, a verbatim copy of the plugin's `editor/nvim.lua`) |
+  | `active-agent.jump` | [shoaibkhanz/herdr-active-agent-jump](https://github.com/shoaibkhanz/herdr-active-agent-jump) | `prefix+j` / `prefix+k` |
+  | `attention.jump` | [milkyskies/herdr-attention](https://github.com/milkyskies/herdr-attention) | `prefix+a` |
+  | `herdr-plugin-workspace-manager` | [razajamil/herdr-plugin-workspace-manager](https://github.com/razajamil/herdr-plugin-workspace-manager) | per-worktree layouts (event-driven, no key) |
+- **Fast refresh** - `./install.sh --herdr` re-links the herdr configs, re-installs the plugins above, and re-runs `herdr integration install` for `pi`/`omp`/`claude` without running the rest of the installer — run it after pulling latest herdr changes.
 
 ### Global Gitignore
 Automatically ignores across all repos:

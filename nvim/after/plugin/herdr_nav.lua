@@ -3,7 +3,7 @@
 -- Seamless <C-h/j/k/l> between Neovim splits and herdr. Move between Neovim
 -- splits; at a split edge, hand off to the herdr-nav-plus plugin so focus
 -- crosses into the neighbouring herdr pane AND, on the vertical axis (j/k),
--- keeps going into spaces and agents at the pane-grid edge.
+-- keeps walking the workspace list (wrapping) at the pane-grid edge.
 --
 -- Load only ONE herdr navigation editor map. The simplest reliable install is
 -- after/plugin so it wins over other <C-h/j/k/l> maps (e.g. vim-tmux-navigator):
@@ -43,6 +43,6 @@ local function map(lhs, wincmd, dir, desc)
 end
 
 map("<C-h>", "h", "left", "Navigate left (vim/herdr)")
-map("<C-j>", "j", "down", "Navigate down (vim/herdr/space/agent)")
-map("<C-k>", "k", "up", "Navigate up (vim/herdr/space/agent)")
+map("<C-j>", "j", "down", "Navigate down (vim/herdr/workspace)")
+map("<C-k>", "k", "up", "Navigate up (vim/herdr/workspace)")
 map("<C-l>", "l", "right", "Navigate right (vim/herdr)")

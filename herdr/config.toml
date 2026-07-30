@@ -25,9 +25,9 @@ focus_pane_up = ""
 next_tab = "ctrl+n"
 previous_tab = "ctrl+p"
 
-# Active Agent Jump plugin (local: ~/code/herdr-active-agent-jump): cycle focus
-# through ACTIVE agents (working or blocked). j = next, k = previous.
-# Press ctrl+a, release, then j / k.
+# Active Agent Jump plugin (github: shoaibkhanz/herdr-active-agent-jump, installed
+# as `active-agent.jump`): cycle focus through ACTIVE agents (working or blocked).
+# j = next, k = previous. Press ctrl+a, release, then j / k.
 [[keys.command]]
 key = "prefix+j"
 type = "plugin_action"
@@ -49,11 +49,15 @@ type = "plugin_action"
 command = "attention.jump.next"
 description = "Jump to next agent needing attention"
 
-# herdr-nav-plus plugin (local: ~/code/herdr_plugins/herdr-nav-plus):
-# seamless Ctrl+h/j/k/l. Strict superset of vim-herdr-navigation — keeps vim<->pane
-# behaviour, and on the vertical axis (j/k) walks SPACES then AGENTS at the pane
-# edge. DIRECT chords (no prefix). The plugin ships no manifest keys, so these
-# entries are REQUIRED. (Do not also bind vim-herdr-navigation.* to these keys.)
+# herdr-nav-plus plugin (github: shoaibkhanz/herdr-nav-plus): seamless Ctrl+h/j/k/l.
+# Strict superset of vim-herdr-navigation — keeps vim<->pane behaviour, and on the
+# vertical axis (j/k) walks the WORKSPACE sidebar (wrapping at both ends) at the
+# pane-grid edge. DIRECT chords (no prefix). The plugin ships no manifest keys, so
+# these entries are REQUIRED. (Do not also bind vim-herdr-navigation.* to these keys.)
+#
+# Every plugin bound below is installed by ../install.sh (HERDR_PLUGINS) — a
+# binding whose plugin is missing resolves to `plugin_not_found` and the key
+# silently does nothing. Check with `herdr plugin list`.
 [[keys.command]]
 key = "ctrl+h"
 type = "plugin_action"

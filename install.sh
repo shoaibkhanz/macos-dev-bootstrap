@@ -137,11 +137,13 @@ link_herdr_configs() {
         "$HOME/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml"
 }
 
-# --herdr fast path: refresh only herdr config + integrations, wherever run.
+# --herdr fast path: refresh only herdr config + plugins + integrations,
+# wherever run.
 update_herdr() {
     info "Updating herdr configuration from $SCRIPT_DIR/herdr..."
     run mkdir -p "$HOME/.config/herdr"
     link_herdr_configs
+    install_herdr_plugins
     configure_herdr_integrations
     success "Herdr configuration updated."
 }
@@ -357,6 +359,51 @@ install_omp() {
     # Official omp installer — deliberately NOT Homebrew. Installs to ~/.local/bin (on PATH via .zshrc).
     run bash -c "curl -fsSL https://omp.sh/install | sh"
     success "omp installed via official installer"
+}
+
+# Every herdr plugin that herdr/config.toml binds a key to, as
+# "<plugin id>|<owner/repo>". The id is what config.toml's plugin_action
+# commands address (e.g. `herdr-nav-plus.left`) and what `herdr plugin list`
+# prints; it is NOT always the repo name — herdr-active-agent-jump installs as
+# `active-agent.jump`. Keep this list and the [[keys.command]] entries in
+# herdr/config.toml in sync: a binding whose plugin is missing is a dead key
+# (the action resolves to `plugin_not_found` and nothing happens).
+HERDR_PLUGINS=(
+    "herdr-nav-plus|shoaibkhanz/herdr-nav-plus"
+    "active-agent.jump|shoaibkhanz/herdr-active-agent-jump"
+    "attention.jump|milkyskies/herdr-attention"
+    "herdr-plugin-workspace-manager|razajamil/herdr-plugin-workspace-manager"
+)
+
+install_herdr_plugins() {
+    info "Installing herdr plugins (ctrl+hjkl nav, agent jumps, workspace layouts)..."
+    if ! command -v herdr &> /dev/null; then
+        warn "herdr not on PATH — skipping. Once herdr is installed, run: $SCRIPT_DIR/install.sh --herdr"
+        return
+    fi
+    # nav-plus and both jump plugins run their actions with `node`. A missing
+    # node installs fine and only fails at keypress time, so flag it here.
+    command -v node &> /dev/null || warn "node not on PATH — herdr plugin actions need it (brew install node)"
+
+    local installed
+    installed="$(herdr plugin list 2> /dev/null || true)"
+
+    local entry id repo
+    for entry in "${HERDR_PLUGINS[@]}"; do
+        id="${entry%%|*}"
+        repo="${entry##*|}"
+        # A locally linked checkout (`herdr plugin link`, for plugin dev) wins:
+        # installing from GitHub would replace it with a fixed commit.
+        if printf '%s\n' "$installed" | grep -q "^- $id .*\[local:"; then
+            info "herdr plugin '$id' is linked from a local checkout — leaving it alone"
+            continue
+        fi
+        # Reinstall unconditionally: it is idempotent (prints "replaces: ...")
+        # and server-independent, so it doubles as the update path.
+        run herdr plugin install "$repo" --yes \
+            || warn "herdr plugin '$id' ($repo) failed — keys bound to $id.* will do nothing"
+    done
+    success "herdr plugins installed"
 }
 
 configure_herdr_integrations() {
@@ -903,6 +950,9 @@ main() {
     step "herdr integrations"  configure_herdr_integrations
     step "macOS defaults"      configure_macos
     step "backup + configs"    backup_and_install_configs
+    # After backup + configs: config.toml (which binds the plugin actions) and
+    # the workspace-manager config symlink are in place first.
+    step "herdr plugins"       install_herdr_plugins
     step "git config"          configure_git
     step "default shell"       configure_zsh
     step "tmux plugins"        install_tpm
