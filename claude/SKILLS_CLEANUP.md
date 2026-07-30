@@ -72,3 +72,33 @@ to-issues, to-prd, triage
 worktree (`~/conductor/workspaces/macos-dev-bootstrap/dublin/...`). All live
 skill symlinks were rebuilt to point at this repo
 (`~/code/macos-dev-bootstrap/claude/agents/skills/<name>`).
+
+# Skills sync — 2026-07-30
+
+Refreshed the Matt Pocock set against upstream and brought the plannotator
+commands back as skills.
+
+## Renamed upstream (2)
+
+- `to-prd` → `to-spec` (folder was already `to-spec/`; only the skill name and
+  description lagged behind)
+- `to-issues` → `to-tickets` — tickets now declare their blocking edges, as
+  text in the local file or as native blocking links on a real tracker
+
+## Re-added as skills (3)
+
+`plannotator-annotate`, `plannotator-last`, `plannotator-review` — previously
+deleted in the 2026-07-04 pass, then reintroduced as slash commands under
+`claude/commands/`. They now live in `claude/agents/skills/` like everything
+else, each with an `agents/openai.yaml` and `disable-model-invocation: true`
+so they only run when asked for by name. The three `claude/commands/plannotator-*.md`
+files are gone.
+
+## Refreshed in place
+
+ask-matt, grilling, handoff, implement, prototype (SKILL/LOGIC/UI),
+setup-matt-pocock-skills, to-spec, to-tickets, writing-great-skills.
+
+Notable behaviour change in `setup-matt-pocock-skills`: it now leads each
+section with the recommended answer, skips Section B when `triage` isn't
+installed, and skips the monorepo question unless it finds monorepo signals.
