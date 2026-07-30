@@ -215,6 +215,7 @@ macos-dev-bootstrap/
 ├── marimo/                 # Marimo notebook config (templated, copied not symlinked)
 ├── claude/                 # Claude Code: agents/, rules/, commands/, settings.json
 ├── herdr/                  # Herdr config
+├── archive/                # Retired configs — not installed, not symlinked (see archive/README.md)
 └── starship.toml           # Prompt config
 ```
 
