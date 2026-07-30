@@ -1,15 +1,31 @@
--- vim-herdr-navigation — Neovim side
+-- herdr-nav-plus — Neovim side (optional, for full vim -> space walks)
 --
--- Seamless <C-h/j/k/l> navigation between Neovim splits and herdr panes: move
--- between Neovim splits, and at a split edge hand off to herdr so focus crosses
--- into the neighbouring herdr pane. When not inside herdr it falls back to tmux
--- (if any) or plain wincmd, so a tmux setup keeps working.
+-- Seamless <C-h/j/k/l> between Neovim splits and herdr. Move between Neovim
+-- splits; at a split edge, hand off to the herdr-nav-plus plugin so focus
+-- crosses into the neighbouring herdr pane AND, on the vertical axis (j/k),
+-- keeps going into spaces and agents at the pane-grid edge.
 --
--- Load it so it wins over other <C-h/j/k/l> mappings (e.g. vim-tmux-navigator).
--- The simplest reliable way is to drop it in your config's after/plugin dir:
+-- Load only ONE herdr navigation editor map. The simplest reliable install is
+-- after/plugin so it wins over other <C-h/j/k/l> maps (e.g. vim-tmux-navigator):
 --   cp editor/nvim.lua ~/.config/nvim/after/plugin/herdr_nav.lua
--- or source it from your config after plugins load:
---   dofile("/path/to/vim-herdr-navigation/editor/nvim.lua")
+-- or dofile it from your config after plugins load.
+
+local PLUGIN = "herdr-nav-plus"
+
+local function cross(dir)
+  if vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= "" then
+    local herdr = vim.env.HERDR_BIN_PATH
+    if herdr == nil or herdr == "" then
+      herdr = "herdr"
+    end
+    -- The edge-* actions skip the Vim-forward step, so this never bounces the
+    -- chord back into Neovim.
+    vim.fn.system({ herdr, "plugin", "action", "invoke", "edge-" .. dir, "--plugin", PLUGIN })
+  elseif vim.env.TMUX and vim.env.TMUX ~= "" then
+    local tmux = { left = "Left", down = "Down", up = "Up", right = "Right" }
+    pcall(vim.cmd, "TmuxNavigate" .. tmux[dir])
+  end
+end
 
 local function nav(wincmd, dir)
   local prev = vim.api.nvim_get_current_win()
@@ -17,17 +33,7 @@ local function nav(wincmd, dir)
   if vim.api.nvim_get_current_win() ~= prev then
     return -- moved within Neovim
   end
-  -- At a split edge: cross into the surrounding multiplexer.
-  if vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= "" then
-    local herdr = vim.env.HERDR_BIN_PATH
-    if herdr == nil or herdr == "" then
-      herdr = "herdr"
-    end
-    vim.fn.system({ herdr, "pane", "focus", "--direction", dir, "--current" })
-  elseif vim.env.TMUX and vim.env.TMUX ~= "" then
-    local tmux = { left = "Left", down = "Down", up = "Up", right = "Right" }
-    pcall(vim.cmd, "TmuxNavigate" .. tmux[dir])
-  end
+  cross(dir)
 end
 
 local function map(lhs, wincmd, dir, desc)
@@ -37,6 +43,6 @@ local function map(lhs, wincmd, dir, desc)
 end
 
 map("<C-h>", "h", "left", "Navigate left (vim/herdr)")
-map("<C-j>", "j", "down", "Navigate down (vim/herdr)")
-map("<C-k>", "k", "up", "Navigate up (vim/herdr)")
+map("<C-j>", "j", "down", "Navigate down (vim/herdr/space/agent)")
+map("<C-k>", "k", "up", "Navigate up (vim/herdr/space/agent)")
 map("<C-l>", "l", "right", "Navigate right (vim/herdr)")
