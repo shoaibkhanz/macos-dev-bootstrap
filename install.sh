@@ -655,26 +655,69 @@ install_tpm() {
     fi
 }
 
-install_neovim_providers() {
-    info "Installing Neovim providers and tools..."
+# Write the pyproject.toml for nvim's python3 host venv (deps come from
+# `uv add` right after). requires-python is deliberately loose: the venv
+# tracks whatever interpreter uv picks, and pinning it here would strand the
+# project whenever that moves.
+write_nvim_pyproject() {
+    local dir="$1"
 
-    # Python provider + molten-nvim dependencies via uv
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}[DRY-RUN]${NC} mkdir -p $dir"
+        echo -e "${YELLOW}[DRY-RUN]${NC} write virtual project pyproject.toml -> $dir/pyproject.toml"
+        return
+    fi
+
+    mkdir -p "$dir"
+    cat > "$dir/pyproject.toml" << 'EOF'
+# Managed by macos-dev-bootstrap/install.sh — a dependency container for
+# Neovim's python3 provider (pynvim, molten-nvim, jupytext).
+#
+# No [build-system] on purpose: that makes this a virtual project, so uv only
+# resolves dependencies into .venv instead of trying to build the directory as
+# a distribution.
+[project]
+name = "nvim-python"
+version = "0.1.0"
+description = "Neovim python3 provider environment"
+requires-python = ">=3.11"
+dependencies = []
+EOF
+}
+
+# Python provider + molten-nvim/jupytext dependencies, in their own uv-managed
+# venv that nvim points python3_host_prog at.
+setup_nvim_python_env() {
     if command -v uv &> /dev/null; then
         local nvim_python_dir="$HOME/.local/share/nvim/python"
+        local nvim_pyproject="$nvim_python_dir/pyproject.toml"
 
-        # `uv init <dir>` takes the project name from the directory, and this
-        # one is called `python` — a name uv refuses to install:
-        #   error: Failed to install: python-0.1.0-py3-none-any.whl
-        #     Caused by: Scripts must not use the reserved name `python`
-        # (uv blocks any wheel whose scripts could overwrite the interpreter).
-        # The directory name stays — nvim's python3_host_prog points at
-        # <dir>/.venv/bin/python3 — only the project name is forced to a safe one.
-        if [ ! -f "$nvim_python_dir/pyproject.toml" ]; then
+        # This directory is only a dependency container for nvim's python3 host
+        # (see python3_host_prog in nvim/lua/plugins/molten.lua): nothing in it
+        # is ever built or imported as a distribution. `uv init` is the wrong
+        # tool for it twice over:
+        #
+        #   * uv >= 0.12 inits a *packaged* project — [build-system] plus a
+        #     src/<name>/ module — so every later `uv add` builds the root, and
+        #     any drift between project name and module dir is a hard failure:
+        #       × Failed to build `nvim-python @ file:///...nvim/python`
+        #       ╰─▶ Expected a Python module at: src/nvim_python/__init__.py
+        #     (Exactly what a project inited under the old name hits after the
+        #     name is corrected — the module stays at src/python/.)
+        #   * The name it defaults to is the directory name, `python`, which uv
+        #     refuses to install: a wheel's scripts must not be able to
+        #     overwrite the interpreter.
+        #
+        # A hand-written pyproject with no [build-system] is a virtual project:
+        # uv resolves and installs the dependencies into .venv and never builds
+        # the root. The directory name stays put — only the metadata is ours.
+        if [ ! -f "$nvim_pyproject" ]; then
             info "Creating Neovim Python project at $nvim_python_dir..."
-            run uv init --no-readme --name nvim-python "$nvim_python_dir"
-        elif grep -q '^name = "python"$' "$nvim_python_dir/pyproject.toml"; then
-            warn "Project in $nvim_python_dir is named 'python' (reserved) — renaming to 'nvim-python'"
-            run sed -i '' 's/^name = "python"$/name = "nvim-python"/' "$nvim_python_dir/pyproject.toml"
+            write_nvim_pyproject "$nvim_python_dir"
+        elif grep -q '^\[build-system\]' "$nvim_pyproject"; then
+            warn "Project in $nvim_python_dir is a packaged project (uv would build it) — converting to a virtual project"
+            write_nvim_pyproject "$nvim_python_dir"
+            run rm -rf "$nvim_python_dir/src"
         fi
         info "Installing Neovim Python packages (pynvim, molten deps, jupytext)..."
         run uv add --directory "$nvim_python_dir" \
@@ -690,6 +733,12 @@ install_neovim_providers() {
     else
         warn "uv not found, skipping Python provider and molten setup"
     fi
+}
+
+install_neovim_providers() {
+    info "Installing Neovim providers and tools..."
+
+    setup_nvim_python_env
 
     # Node.js provider
     if command -v npm &> /dev/null; then
