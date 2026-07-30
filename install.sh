@@ -16,8 +16,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Fail loudly with line number on any uncaught error
-trap 'echo -e "${RED}[ERROR]${NC} Installation failed at line ${LINENO}"; exit 1' ERR
+# Fail loudly on any error that escapes a `step` (pre-flight, PATH setup).
+# No line number: on macOS's bash 3.2, $LINENO inside an ERR trap reports the
+# line the innermost function was *defined* on, not the line that failed.
+trap 'echo -e "${RED}[ERROR]${NC} Installation failed — see the error above"; exit 1' ERR
 
 # Script directory (where this script lives)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,6 +28,7 @@ DRY_RUN=false
 SKIP_BREW=false
 WORK_MODE=false
 HERDR_ONLY=false
+INSTALL_CLAUDE=false
 
 # =============================================================================
 # Helper Functions
@@ -53,6 +56,50 @@ run() {
         echo -e "${YELLOW}[DRY-RUN]${NC} $*"
     else
         "$@"
+    fi
+}
+
+# Steps that failed, recorded by `step` and reported in the final summary.
+FAILED_STEPS=()
+
+# Run one install phase so that its failure cannot abort the bootstrap.
+#
+# The phase runs in a subshell with errexit + errtrace on, so it stops at its
+# *own* first failing command (never carries on with half-built state), while
+# the parent records the failure and moves to the next phase.
+#
+# The `set +e` around the subshell is load-bearing twice over: it stops the
+# parent from dying with the phase, and it keeps the subshell out of a
+# condition context — bash suppresses errexit inside a subshell used as an
+# `if`/`&&`/`||` operand, even one that re-runs `set -e` itself.
+#
+# A phase can only publish results to later phases through the filesystem, not
+# through shell state — see ensure_brew_path for the one exception (PATH).
+step() {
+    local label="$1" rc=0
+    shift
+
+    set +e
+    (
+        set -eE
+        trap 'echo -e "${RED}[ERROR]${NC} ${label} failed — see the error above"' ERR
+        "$@"
+    )
+    rc=$?
+    set -e
+
+    [ "$rc" -eq 0 ] && return 0
+    FAILED_STEPS+=("$label")
+    warn "Step '$label' failed (exit $rc) — continuing; see the summary at the end."
+    return 0
+}
+
+# Homebrew's bin dir must be on PATH for later steps (tmux, uv, nvim, delta) to
+# find their binaries. Re-applied in main after the brew steps because a fresh
+# `brew shellenv` eval inside a `step` subshell dies with that subshell.
+ensure_brew_path() {
+    if ! command -v brew &> /dev/null && [[ -x /opt/homebrew/bin/brew ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
 }
 
@@ -129,14 +176,19 @@ parse_args() {
                 HERDR_ONLY=true
                 warn "Herdr-only mode: refreshing herdr config + integrations only."
                 ;;
+            --claude)
+                INSTALL_CLAUDE=true
+                warn "Claude mode: Claude/agent skills, settings, rules & commands WILL be installed (overwriting existing)."
+                ;;
             --help|-h)
-                echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--herdr] [--help]"
+                echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--herdr] [--claude] [--help]"
                 echo ""
                 echo "Options:"
                 echo "  --dry-run    Preview changes without making them"
                 echo "  --skip-brew  Skip Homebrew install and brew bundle"
                 echo "  --work       Skip personal-only packages (e.g. handy)"
                 echo "  --herdr      Only refresh herdr config + integrations (skip everything else)"
+                echo "  --claude     Install Claude/agent skills, settings, rules & commands (default: left untouched)"
                 echo "  --help       Show this help message"
                 exit 0
                 ;;
@@ -226,12 +278,15 @@ install_packages() {
         return
     fi
 
-    # Don't let a single failed cask abort the rest of the bootstrap.
+    # A single failed cask must not abort the bootstrap, but it does mean the
+    # machine is missing packages later steps rely on (tmux, uv, delta), so it
+    # is reported as a failed step rather than silently downgraded to a warning.
     if "${bundle_cmd[@]}"; then
         success "Packages installed"
     else
         warn "brew bundle reported failures — continuing with the rest of the install."
         warn "Re-run 'brew bundle --file=$SCRIPT_DIR/Brewfile' after resolving the errors above."
+        return 1
     fi
 }
 
@@ -324,14 +379,21 @@ backup_existing() {
         "$HOME/.config/starship.toml"
         "$HOME/.config/lazygit"
         "$HOME/.config/marimo"
-        "$HOME/.claude/settings.json"
-        "$HOME/.claude/rules"
-        "$HOME/.claude/commands"
-        "$HOME/.agents/skills"
-        "$HOME/.agents/hooks"
-        "$HOME/.agents/commands"
         "$HOME/.config/herdr/config.toml"
     )
+
+    # Only back up (and thus later overwrite) Claude/agent config when opted in
+    # via --claude. Otherwise leave the existing tree entirely untouched.
+    if [ "$INSTALL_CLAUDE" = true ]; then
+        files_to_backup+=(
+            "$HOME/.claude/settings.json"
+            "$HOME/.claude/rules"
+            "$HOME/.claude/commands"
+            "$HOME/.agents/skills"
+            "$HOME/.agents/hooks"
+            "$HOME/.agents/commands"
+        )
+    fi
 
     local backup_needed=false
     for file in "${files_to_backup[@]}"; do
@@ -390,6 +452,29 @@ install_marimo_config() {
     success "Marimo config installed (paths resolved for $HOME)"
 }
 
+# Symlink Claude Code + agent config (skills, hooks, commands, rules, settings).
+# Opt-in via --claude so we never overwrite an existing setup by default.
+link_claude_configs() {
+    local skill name
+
+    # Claude Code: agents (skills, hooks, commands)
+    link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
+    link_file "$SCRIPT_DIR/claude/agents/hooks" "$HOME/.agents/hooks"
+    link_file "$SCRIPT_DIR/claude/agents/commands" "$HOME/.agents/commands"
+
+    # Claude Code: rules and commands
+    link_file "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
+    link_file "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
+    link_file "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
+
+    # Claude Code: per-skill symlinks so vendored skills are discoverable
+    for skill in "$SCRIPT_DIR"/claude/agents/skills/*/; do
+        [ -d "$skill" ] || continue
+        name="$(basename "$skill")"
+        link_file "${skill%/}" "$HOME/.claude/skills/$name"
+    done
+}
+
 create_symlinks() {
     info "Creating symlinks..."
 
@@ -406,23 +491,25 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/lazygit" "$HOME/.config/lazygit"
     link_herdr_configs
 
-    # Claude Code: agents (skills, hooks, commands)
-    link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
-    link_file "$SCRIPT_DIR/claude/agents/hooks" "$HOME/.agents/hooks"
-    link_file "$SCRIPT_DIR/claude/agents/commands" "$HOME/.agents/commands"
+    # Claude Code / agent config: opt-in only (--claude). By default we never
+    # touch an existing ~/.claude or ~/.agents tree, so pulling this repo onto
+    # another machine won't clobber that machine's own skills/settings.
+    if [ "$INSTALL_CLAUDE" = true ]; then
+        link_claude_configs
+    else
+        info "Skipping Claude/agent config (skills, settings, rules, commands). Pass --claude to install."
+    fi
+}
 
-    # Claude Code: rules and commands
-    link_file "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
-    link_file "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
-    link_file "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
-
-    # Claude Code: per-skill symlinks so vendored skills are discoverable
-    for skill in "$SCRIPT_DIR"/claude/agents/skills/*/; do
-        [ -d "$skill" ] || continue
-        local name
-        name="$(basename "$skill")"
-        link_file "${skill%/}" "$HOME/.claude/skills/$name"
-    done
+# Backing up and overwriting are one transaction: create_symlinks and
+# install_marimo_config `rm -rf` / rewrite the very paths backup_existing
+# copies aside. Running them as a single `step` means errexit stops the
+# overwrite the moment a backup fails, instead of destroying configs whose
+# copy never happened.
+backup_and_install_configs() {
+    backup_existing
+    create_symlinks
+    install_marimo_config
 }
 
 git_config_set() {
@@ -499,6 +586,16 @@ install_tpm() {
     else
         run git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
         success "TPM installed"
+    fi
+
+    # TPM shells out to `tmux` for every plugin operation, so a machine where
+    # brew bundle failed (or where /opt/homebrew/bin is missing from PATH) would
+    # otherwise die here with "tmux: command not found". Skip the plugin install
+    # and report the step as failed, so a degraded machine doesn't finish green.
+    if ! command -v tmux &> /dev/null; then
+        warn "tmux not found on PATH — skipping plugin install."
+        warn "Fix with 'brew install tmux', then run: $tpm_dir/bin/install_plugins"
+        return 1
     fi
 
     # Install tmux plugins via TPM
@@ -603,11 +700,33 @@ EOF
     warn "Copy to ~/.secrets and add your actual API keys"
 }
 
+# Shared by the full install and the --herdr fast path: the list of steps that
+# failed, and how to recover. No-op when everything succeeded.
+print_failure_summary() {
+    ((${#FAILED_STEPS[@]})) || return 0
+
+    echo -e "${YELLOW}Failed steps (everything else was still installed):${NC}"
+    local failed_step
+    for failed_step in "${FAILED_STEPS[@]}"; do
+        echo "  - $failed_step"
+    done
+    echo ""
+    echo "Scroll up for the [ERROR] line of each one. Fix the cause, then re-run"
+    echo "./install.sh — it is idempotent, finished steps are skipped or refreshed."
+    echo ""
+}
+
 print_post_install() {
     echo ""
-    echo -e "${GREEN}=========================================${NC}"
-    echo -e "${GREEN}  Installation Complete!${NC}"
-    echo -e "${GREEN}=========================================${NC}"
+    if ((${#FAILED_STEPS[@]})); then
+        echo -e "${YELLOW}=========================================${NC}"
+        echo -e "${YELLOW}  Installation finished — ${#FAILED_STEPS[@]} step(s) failed${NC}"
+        echo -e "${YELLOW}=========================================${NC}"
+    else
+        echo -e "${GREEN}=========================================${NC}"
+        echo -e "${GREEN}  Installation Complete!${NC}"
+        echo -e "${GREEN}=========================================${NC}"
+    fi
     echo ""
     echo "Next steps:"
     echo "  1. Restart your terminal or run: source ~/.zshrc"
@@ -621,7 +740,14 @@ print_post_install() {
     echo "  6. Marimo AI features need API keys in ~/.secrets:"
     echo "     export ANTHROPIC_API_KEY=\"...\""
     echo "     export OPENAI_API_KEY=\"...\""
+    if [ "$INSTALL_CLAUDE" = true ]; then
+        echo "  * Claude/agent config was installed (--claude)."
+    else
+        echo "  * Claude/agent skills & settings were left untouched. Re-run with --claude to install them."
+    fi
     echo ""
+    print_failure_summary
+
     if [ "$DRY_RUN" = true ]; then
         echo -e "${YELLOW}This was a dry run. No changes were made.${NC}"
         echo "Run without --dry-run to apply changes."
@@ -644,33 +770,47 @@ main() {
     check_macos
 
     if [ "$HERDR_ONLY" = true ]; then
-        update_herdr
+        step "herdr config" update_herdr
         if [ "$DRY_RUN" = true ]; then
             echo ""
             echo -e "${YELLOW}This was a dry run. No changes were made.${NC}"
         fi
-        return
+        if ((${#FAILED_STEPS[@]})); then
+            echo ""
+            print_failure_summary
+            exit 1
+        fi
+        return 0
     fi
 
+    ensure_brew_path
     if [ "$SKIP_BREW" = false ]; then
-        install_homebrew
-        clear_cask_conflicts
-        install_packages
+        step "Homebrew"            install_homebrew
+        ensure_brew_path
+        step "cask conflicts"      clear_cask_conflicts
+        step "brew bundle"         install_packages
+        ensure_brew_path
     fi
-    install_claude_code
-    install_omp
-    configure_herdr_integrations
-    configure_macos
-    backup_existing
-    create_symlinks
-    install_marimo_config
-    configure_git
-    configure_zsh
-    install_tpm
-    install_neovim_providers
-    create_secrets_template
+    step "Claude Code"         install_claude_code
+    step "omp"                 install_omp
+    step "herdr integrations"  configure_herdr_integrations
+    step "macOS defaults"      configure_macos
+    step "backup + configs"    backup_and_install_configs
+    step "git config"          configure_git
+    step "default shell"       configure_zsh
+    step "tmux plugins"        install_tpm
+    step "neovim providers"    install_neovim_providers
+    step "secrets template"    create_secrets_template
 
     print_post_install
+
+    # Exit here rather than returning non-zero: `main "$@" || …` would put the
+    # whole run in a condition context, and bash 3.2 (macOS /bin/bash) then
+    # suppresses errexit for every subshell inside it — including `step`'s,
+    # which would stop failing phases from stopping at their first bad command.
+    if ((${#FAILED_STEPS[@]})); then
+        exit 1
+    fi
 }
 
 main "$@"

@@ -36,6 +36,7 @@ cd macos-dev-bootstrap
 | `--skip-brew` | Skip Homebrew install and `brew bundle` |
 | `--work` | Skip personal-only Brewfile entries (sets `HOMEBREW_BUNDLE_WORK=1`) |
 | `--herdr` | Only refresh herdr config + integrations, then exit (skips the full bootstrap) |
+| `--claude` | Install Claude/agent skills, settings, rules & commands (default: **left untouched**) |
 | `--help` | Show usage |
 
 To mark additional packages as personal-only, move them inside the `unless work?` block in `Brewfile`.
@@ -47,11 +48,11 @@ To mark additional packages as personal-only, move them inside the `unless work?
 3. **Installs Claude Code and omp** via their official installers (`curl … | bash` / `sh`), not Homebrew — skipped if already present
 4. **Installs herdr agent integrations** (`pi`, `omp`, `claude`) — skipped if herdr isn't on `PATH`; a missing agent warns and continues
 5. **Configures macOS** settings: faster keyboard, no auto-correct, Raycast hotkey
-6. **Backs up existing configs** to `~/.config-backup-YYYYMMDD-HHMMSS/` (preserves path structure to avoid filename collisions)
-7. **Creates symlinks** from your home directory to this repo
+6. **Backs up existing configs and creates symlinks** — backup goes to `~/.config-backup-YYYYMMDD-HHMMSS/` (path structure preserved to avoid filename collisions); the symlinks and the Marimo config are written in the same step, so a failed backup stops the overwrite instead of clobbering configs that were never copied
+7. Symlinks point from your home directory into this repo — Claude/agent config (`~/.claude/{skills,rules,commands,settings.json}`, `~/.agents/{skills,hooks,commands}`) is **skipped unless you pass `--claude`**, so pulling this repo onto another machine never clobbers its own skills/settings
 8. **Configures git globals** — `core.excludesfile`, and (if `delta` is installed) `core.pager`, `interactive.diffFilter`, `delta.navigate`, `delta.line-numbers`, `merge.conflictstyle = zdiff3`
 9. **Sets zsh as default shell** (adds to `/etc/shells` if needed)
-10. **Installs TPM and tmux plugins** (auto-installs, no manual step needed)
+10. **Installs TPM and tmux plugins** — TPM is always cloned; the plugin install is skipped and reported as a failed step if `tmux` isn't on `PATH` (e.g. after a failed `brew bundle`)
 11. **Installs Neovim providers** (Python via uv, Ruby, Node, Mermaid CLI)
 12. **Creates secrets template** at `~/.secrets.example`
 
@@ -59,7 +60,8 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 
 ### Safety
 
-- `set -euo pipefail` + `trap ERR` — script aborts on any uncaught error and prints the line number.
+- **Step isolation** — each step runs in its own subshell with `set -eE`. A step stops at its first failing command, the failure is logged, and the installer moves on to the next step. One bad step (a failed cask, a missing binary) no longer aborts the whole bootstrap.
+- **Failure summary** — the run ends with a list of every failed step and exits `1`; a clean run exits `0`. Re-run `./install.sh` after fixing the cause — it is idempotent.
 - `--dry-run` is fully honoured: no file is created or written, no `sudo`, no `curl | bash`, no global git config writes.
 - Anything `install.sh` is about to overwrite (in `~/.zshrc`, `~/.config/`, `~/.claude/`, `~/.agents/`) is backed up to `~/.config-backup-…/` first.
 
