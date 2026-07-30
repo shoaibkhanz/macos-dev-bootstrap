@@ -44,7 +44,7 @@ To mark additional packages as personal-only, move them inside the `unless work?
 ## What the Installer Does
 
 1. **Installs Homebrew** (if not present)
-2. **Installs all packages** from `Brewfile` (CLI tools, apps, fonts) — `--work` skips personal-only entries
+2. **Installs all packages** from `Brewfile` (CLI tools, apps, fonts) — `--work` skips personal-only entries. If `brew bundle` fails as a batch, the installer asks `brew bundle check` what's still missing and installs each entry on its own, so one broken cask costs exactly that cask instead of the whole Brewfile
 3. **Installs Claude Code and omp** via their official installers (`curl … | bash` / `sh`), not Homebrew — skipped if already present
 4. **Installs herdr agent integrations** (`pi`, `omp`, `claude`) — skipped if herdr isn't on `PATH`; a missing agent warns and continues
 5. **Configures macOS** settings: faster keyboard, no auto-correct, Raycast hotkey
@@ -74,6 +74,15 @@ Use on machines that should not get personal-only apps (current Mac at a new job
 - `HOMEBREW_BUNDLE_WORK` is `HOMEBREW_`-prefixed because `brew bundle` scrubs other env vars.
 
 Currently skipped under `--work`: `handy`. Add more by moving them inside the `unless work?` block in `Brewfile`.
+
+### Third-party taps (`trusted: true`)
+
+Homebrew 6 refuses to load a formula or cask from an untrusted third-party tap
+(`Refusing to load formula sst/tap/opencode from untrusted tap sst/tap`). Every
+non-core tap in the `Brewfile` therefore carries `trusted: true`, which
+`brew bundle` applies to the trust store (`~/.homebrew/trust.json`) before it
+fetches anything. Add the flag to any new tap you introduce, or its packages
+will never install.
 
 ## What's Included
 

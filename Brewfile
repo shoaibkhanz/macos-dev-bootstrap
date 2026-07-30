@@ -14,11 +14,14 @@ def work?
   ENV["HOMEBREW_BUNDLE_WORK"] == "1"
 end
 
-# Taps
-tap "manaflow-ai/cmux"  # cmux
-tap "oven-sh/bun"       # bun
-tap "sst/tap"           # opencode
-tap "hashicorp/tap"     # terraform (no longer in homebrew-core since BSL relicense)
+# Taps. `trusted: true` is required since Homebrew 6: it refuses to load
+# formulae/casks from untrusted third-party taps (UntrustedTapError), and
+# `brew bundle` grants Brewfile-declared trust before its up-front fetch —
+# without it the fetch fails and the bundle installs *nothing at all*.
+tap "manaflow-ai/cmux", trusted: true  # cmux
+tap "oven-sh/bun", trusted: true       # bun
+tap "sst/tap", trusted: true           # opencode
+tap "hashicorp/tap", trusted: true     # terraform (no longer in homebrew-core since BSL relicense)
 
 # =============================================================================
 # Core CLI Tools

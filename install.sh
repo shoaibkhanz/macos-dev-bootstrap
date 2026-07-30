@@ -278,16 +278,63 @@ install_packages() {
         return
     fi
 
-    # A single failed cask must not abort the bootstrap, but it does mean the
-    # machine is missing packages later steps rely on (tmux, uv, delta), so it
-    # is reported as a failed step rather than silently downgraded to a warning.
+    # `brew bundle` is all-or-nothing: it runs one `brew fetch` for every entry
+    # up front and installs *nothing* if that fetch fails (Homebrew 6:
+    # Library/Homebrew/bundle/installer.rb). One unavailable cask therefore
+    # leaves the machine with no tmux, no uv, no node — which is exactly how a
+    # bootstrap ends up dying later with "tmux: command not found".
     if "${bundle_cmd[@]}"; then
         success "Packages installed"
-    else
-        warn "brew bundle reported failures — continuing with the rest of the install."
-        warn "Re-run 'brew bundle --file=$SCRIPT_DIR/Brewfile' after resolving the errors above."
+        return 0
+    fi
+
+    warn "brew bundle failed as a batch — retrying the missing entries one at a time."
+    install_missing_bundle_entries
+}
+
+# Ask brew what the Brewfile still wants, then install each entry on its own so
+# one broken formula or cask costs exactly itself. Returns non-zero if anything
+# is still missing afterwards, so the run is reported as a failed step.
+install_missing_bundle_entries() {
+    local missing failed=0 count kind name
+
+    # `brew bundle check` exits 1 exactly when something is missing, which is
+    # the case we care about — `|| true` keeps errexit/pipefail from killing the
+    # function before it can read the list. No auto-update: the bundle run that
+    # just failed already did one.
+    missing="$(env HOMEBREW_NO_AUTO_UPDATE=1 \
+        brew bundle check --file="$SCRIPT_DIR/Brewfile" --verbose 2>&1 |
+        sed -nE 's/^.*(Tap|Formula|Cask) ([^ ]+) needs to be.*$/\1 \2/p' || true)"
+
+    if [ -z "$missing" ]; then
+        warn "brew bundle reported a failure but nothing is missing — treating as installed."
+        return 0
+    fi
+
+    count="$(printf '%s\n' "$missing" | wc -l | tr -d ' ')"
+    info "$count Brewfile entries still missing — installing individually..."
+
+    # Herestring, not a pipe: the loop must run in this shell so $failed sticks.
+    while read -r kind name; do
+        [ -n "$name" ] || continue
+        case "$kind" in
+            Tap)     run brew tap "$name" ;;
+            Formula) run brew install --formula "$name" ;;
+            Cask)    run brew install --cask "$name" ;;
+            *)       continue ;;
+        esac || {
+            warn "Failed to install $kind $name — skipping it."
+            failed=$((failed + 1))
+        }
+    done <<< "$missing"
+
+    if [ "$failed" -gt 0 ]; then
+        warn "$failed of $count entries could not be installed; the rest are in place."
+        warn "Fix those, then re-run 'brew bundle --file=$SCRIPT_DIR/Brewfile'."
         return 1
     fi
+
+    success "Installed all $count entries that brew bundle skipped"
 }
 
 install_claude_code() {
