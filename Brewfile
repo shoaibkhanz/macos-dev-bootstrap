@@ -18,7 +18,6 @@ end
 # formulae/casks from untrusted third-party taps (UntrustedTapError), and
 # `brew bundle` grants Brewfile-declared trust before its up-front fetch —
 # without it the fetch fails and the bundle installs *nothing at all*.
-tap "manaflow-ai/cmux", trusted: true  # cmux
 tap "oven-sh/bun", trusted: true       # bun
 tap "sst/tap", trusted: true           # opencode
 tap "hashicorp/tap", trusted: true     # terraform (no longer in homebrew-core since BSL relicense)
@@ -112,7 +111,6 @@ brew "postgresql@14"
 # =============================================================================
 cask "ghostty"         # Terminal emulator
 cask "raycast"         # Spotlight replacement
-cask "manaflow-ai/cmux/cmux"  # AI agent terminal manager
 # claude-code — installed via the official installer in install.sh (curl … | bash), not Homebrew
 cask "codex"           # OpenAI coding agent
 cask "gcloud-cli"      # Google Cloud SDK

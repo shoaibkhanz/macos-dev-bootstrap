@@ -162,7 +162,7 @@ docker, docker-compose, lazydocker
 btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
 **Apps:**
-ghostty, raycast, codex, cmux, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): handy.
+ghostty, raycast, codex, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): handy.
 
 **Installed via official installers (not Homebrew):**
 - **Claude Code** — `curl -fsSL https://claude.ai/install.sh | bash`
