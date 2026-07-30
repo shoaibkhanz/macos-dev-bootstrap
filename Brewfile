@@ -124,7 +124,6 @@ end
 # =============================================================================
 # AI & Agentic Tools
 # =============================================================================
-brew "claude-squad"    # Manage multiple AI agents in parallel
 brew "gemini-cli"      # Google Gemini CLI
 brew "sst/tap/opencode" # AI coding assistant TUI
 
