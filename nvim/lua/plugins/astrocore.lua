@@ -55,6 +55,13 @@ return {
           -- configure global vim variables (vim.g)
           -- NOTE: `mapleader` and `maplocalleader` must be set in the AstroNvim opts or before `lazy.setup`
           -- This can be found in the `lua/lazy_setup.lua` file
+
+          -- Ruby provider: `gem install --user-install neovim` drops
+          -- neovim-ruby-host under ~/.local/share/gem/ruby/<abi>/bin, which is
+          -- only on $PATH for shells that sourced .zshrc. Resolve it here so the
+          -- provider also works when nvim is launched outside a login shell.
+          -- Glob the ABI directory — it changes on every Ruby upgrade.
+          ruby_host_prog = vim.fn.glob(vim.fn.expand "~/.local/share/gem/ruby/*/bin/neovim-ruby-host", false, true)[1],
         },
       },
       -- Autocmds configured through AstroCore

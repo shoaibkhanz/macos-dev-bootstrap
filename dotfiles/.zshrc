@@ -41,6 +41,10 @@ path=(
   "$HOME/go/bin"               # Go binaries
   "$HOME/.modular/bin"         # Modular/Mojo binaries
   "$HOME/.antigravity/antigravity/bin"  # Antigravity tool
+  # `gem install --user-install` bin dir — where neovim-ruby-host lands, so
+  # Neovim's Ruby provider is actually reachable. Globbed (N = skip if absent)
+  # instead of hardcoding the ABI version, which changes on every Ruby bump.
+  "$HOME/.local/share/gem/ruby/"*/bin(N)
   $path
 )
 

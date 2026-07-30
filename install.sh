@@ -661,9 +661,20 @@ install_neovim_providers() {
     # Python provider + molten-nvim dependencies via uv
     if command -v uv &> /dev/null; then
         local nvim_python_dir="$HOME/.local/share/nvim/python"
+
+        # `uv init <dir>` takes the project name from the directory, and this
+        # one is called `python` — a name uv refuses to install:
+        #   error: Failed to install: python-0.1.0-py3-none-any.whl
+        #     Caused by: Scripts must not use the reserved name `python`
+        # (uv blocks any wheel whose scripts could overwrite the interpreter).
+        # The directory name stays — nvim's python3_host_prog points at
+        # <dir>/.venv/bin/python3 — only the project name is forced to a safe one.
         if [ ! -f "$nvim_python_dir/pyproject.toml" ]; then
             info "Creating Neovim Python project at $nvim_python_dir..."
-            run uv init --no-readme "$nvim_python_dir"
+            run uv init --no-readme --name nvim-python "$nvim_python_dir"
+        elif grep -q '^name = "python"$' "$nvim_python_dir/pyproject.toml"; then
+            warn "Project in $nvim_python_dir is named 'python' (reserved) — renaming to 'nvim-python'"
+            run sed -i '' 's/^name = "python"$/name = "nvim-python"/' "$nvim_python_dir/pyproject.toml"
         fi
         info "Installing Neovim Python packages (pynvim, molten deps, jupytext)..."
         run uv add --directory "$nvim_python_dir" \
