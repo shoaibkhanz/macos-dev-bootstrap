@@ -77,9 +77,13 @@ instead of repeating and the two values look like they did nothing.
 **None of it applies to the session that ran the installer.** HIToolbox reads these
 once per app at launch, so every app already running — including the terminal you
 bootstrapped from — keeps the old rate until you reboot (a logout usually does it).
-If typing still feels slow afterwards, check that nothing relaunched from a stale
-session: `ps -o lstart -p "$(pgrep -x ghostty)"` should be *later* than
-`stat -f %Sm ~/Library/Preferences/.GlobalPreferences.plist`.
+To confirm which side of the line an app is on, its launch time must be *later*
+than the last write to the global prefs:
+
+```bash
+ps -Ao lstart,comm | grep '[g]hostty'
+stat -f %Sm ~/Library/Preferences/.GlobalPreferences.plist
+```
 
 ### Work mode (`--work`)
 
