@@ -8,7 +8,7 @@
 # Note: brew bundle scrubs the environment but preserves HOMEBREW_* vars,
 # which is why this flag must be HOMEBREW_-prefixed.
 #
-# Mark an item as personal by moving it inside the `unless work?` block below.
+# Mark an item as personal by wrapping it in `unless work?`.
 
 def work?
   ENV["HOMEBREW_BUNDLE_WORK"] == "1"
@@ -21,7 +21,9 @@ end
 tap "oven-sh/bun", trusted: true       # bun
 tap "sst/tap", trusted: true           # opencode
 tap "hashicorp/tap", trusted: true     # terraform (no longer in homebrew-core since BSL relicense)
-tap "rjyo/moshi", trusted: true        # moshi-hook (Moshi mobile terminal)
+unless work?
+  tap "rjyo/moshi", trusted: true      # moshi-hook — personal-only, see below
+end
 
 # =============================================================================
 # Core CLI Tools
@@ -108,14 +110,21 @@ brew "posting"         # API testing TUI
 brew "postgresql@14"
 
 # =============================================================================
-# Remote Access (Moshi from iOS, over Tailscale)
+# Remote Access (Moshi from iOS, over Tailscale) — PERSONAL-ONLY
 # =============================================================================
+# Deliberately skipped on work machines (./install.sh --work). Joining a
+# corporate laptop to a personal WireGuard mesh, and opening a key-authed SSH
+# ingress to it, is a policy problem — not merely clutter. The `rjyo/moshi` tap
+# above is gated with it, so a work machine never even trusts the tap.
+#
 # Installing these is not enough on its own — sshd must be enabled and the host
 # joined to the tailnet. Both need admin/interactive auth, so they are manual:
 # see "Remote access" in README.md.
-brew "tailscale"       # WireGuard mesh; the only network path in to this host
-brew "mosh"            # Roaming UDP shell; survives phone network switches
-brew "moshi-hook"      # Easy Pair + agent event hooks for the Moshi iOS app
+unless work?
+  brew "tailscale"     # WireGuard mesh; the only network path in to this host
+  brew "mosh"          # Roaming UDP shell; survives phone network switches
+  brew "moshi-hook"    # Easy Pair + agent event hooks for the Moshi iOS app
+end
 
 # =============================================================================
 # Casks (GUI Applications)

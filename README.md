@@ -92,8 +92,22 @@ Use on machines that should not get personal-only apps (current Mac at a new job
 - `install.sh --work` exports `HOMEBREW_BUNDLE_WORK=1` for `brew bundle`.
 - The `Brewfile` defines `def work?` and gates personal items with `unless work?`.
 - `HOMEBREW_BUNDLE_WORK` is `HOMEBREW_`-prefixed because `brew bundle` scrubs other env vars.
+- The flag is also passed to the one-at-a-time retry path. `brew bundle check`
+  re-evaluates the `Brewfile`, so without it `work?` returns false there and the
+  retry reinstalls precisely what `--work` just skipped.
+- A few `install.sh` steps check `$WORK_MODE` directly, for personal-only
+  changes that aren't packages.
 
-Currently skipped under `--work`: `handy`. Add more by moving them inside the `unless work?` block in `Brewfile`.
+Currently skipped under `--work`:
+
+| Skipped | Where |
+|---------|-------|
+| `handy` | `Brewfile` |
+| `tailscale`, `mosh`, `moshi-hook`, the `rjyo/moshi` tap | `Brewfile` — see [Remote access](#remote-access-moshi-from-ios-over-tailscale) |
+| `configure_noninteractive_path` (the `~/.zshenv` PATH block) | `install.sh` |
+
+Add a package by wrapping it in `unless work?` in `Brewfile`; add a step by
+returning early on `[ "$WORK_MODE" = true ]`.
 
 ### Third-party taps (`trusted: true`)
 
@@ -189,7 +203,7 @@ docker, docker-compose, lazydocker
 **Utilities:**
 btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
-**Remote access:**
+**Remote access** _(personal-only — skipped with `--work`)_**:**
 tailscale, mosh, moshi-hook (via `rjyo/moshi`) — see [Remote access](#remote-access-moshi-from-ios-over-tailscale)
 
 **Apps:**
@@ -218,6 +232,11 @@ ghostty, raycast, codex, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped w
 Drive herdr and its agents from an iPhone with [Moshi](https://getmoshi.app). The
 brew entries land via `Brewfile`, but the rest needs admin rights, a browser
 login and a QR scan, so it stays manual and one-time-per-machine.
+
+**Personal machines only.** `./install.sh --work` skips the whole thing — the
+`rjyo/moshi` tap, all three packages, and the `~/.zshenv` PATH step. Joining a
+corporate laptop to a personal WireGuard mesh and opening an SSH ingress to it
+is a policy problem, not just clutter. Nothing below should be run on one.
 
 **Threat model:** the tailnet is the only way in. `sshd` is key-only, so even on
 an untrusted LAN there is no password to guess, and no port is forwarded from

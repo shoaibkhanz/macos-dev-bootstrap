@@ -299,12 +299,22 @@ install_packages() {
 # is still missing afterwards, so the run is reported as a failed step.
 install_missing_bundle_entries() {
     local missing failed=0 count kind name
+    local -a bundle_env=(HOMEBREW_NO_AUTO_UPDATE=1)
+
+    # HOMEBREW_BUNDLE_WORK must be set here too, not just on the batch run.
+    # `brew bundle check` re-evaluates the Brewfile, so without it `work?`
+    # returns false and every personal-only entry is reported as "missing" —
+    # and this function would then install, on a work machine, exactly what
+    # --work exists to keep off it (tailscale, moshi-hook, handy).
+    if [ "$WORK_MODE" = true ]; then
+        bundle_env+=(HOMEBREW_BUNDLE_WORK=1)
+    fi
 
     # `brew bundle check` exits 1 exactly when something is missing, which is
     # the case we care about — `|| true` keeps errexit/pipefail from killing the
     # function before it can read the list. No auto-update: the bundle run that
     # just failed already did one.
-    missing="$(env HOMEBREW_NO_AUTO_UPDATE=1 \
+    missing="$(env "${bundle_env[@]}" \
         brew bundle check --file="$SCRIPT_DIR/Brewfile" --verbose 2>&1 |
         sed -nE 's/^.*(Tap|Formula|Cask) ([^ ]+) needs to be.*$/\1 \2/p' || true)"
 
@@ -691,7 +701,15 @@ configure_zsh() {
 # so without this it cannot find herdr, mosh-server, or tmux and silently falls
 # back to a plain login shell. ~/.zshrc is the wrong place: non-interactive
 # shells never read it.
+#
+# Personal-only: it exists solely to make this host reachable from the phone,
+# so --work skips it and leaves a work machine's shell environment untouched.
 configure_noninteractive_path() {
+    if [ "$WORK_MODE" = true ]; then
+        info "Work mode — skipping non-interactive PATH (remote access is personal-only)"
+        return 0
+    fi
+
     info "Adding Homebrew to the non-interactive PATH (~/.zshenv)..."
 
     local zshenv="$HOME/.zshenv"
