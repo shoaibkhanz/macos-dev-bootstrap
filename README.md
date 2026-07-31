@@ -66,6 +66,21 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 - `--dry-run` is fully honoured: no file is created or written, no `sudo`, no `curl | bash`, no global git config writes.
 - Anything `install.sh` is about to overwrite (in `~/.zshrc`, `~/.config/`, `~/.claude/`, `~/.agents/`) is backed up to `~/.config-backup-…/` first.
 
+### Key repeat needs a reboot
+
+`configure_macos` sets key repeat below what System Settings offers — `KeyRepeat 1`
+(15ms between repeats, GUI floor is 2/30ms) and `InitialKeyRepeat 10` (150ms before
+the first repeat, GUI floor is 15/225ms) — plus `ApplePressAndHoldEnabled false`,
+which is the gate: with press-and-hold on, a held key opens the diacritic popover
+instead of repeating and the two values look like they did nothing.
+
+**None of it applies to the session that ran the installer.** HIToolbox reads these
+once per app at launch, so every app already running — including the terminal you
+bootstrapped from — keeps the old rate until you reboot (a logout usually does it).
+If typing still feels slow afterwards, check that nothing relaunched from a stale
+session: `ps -o lstart -p "$(pgrep -x ghostty)"` should be *later* than
+`stat -f %Sm ~/Library/Preferences/.GlobalPreferences.plist`.
+
 ### Work mode (`--work`)
 
 Use on machines that should not get personal-only apps (current Mac at a new job, shared machines, etc.). Implementation:

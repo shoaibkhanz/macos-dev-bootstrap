@@ -426,14 +426,20 @@ configure_herdr_integrations() {
 configure_macos() {
     info "Configuring macOS settings..."
 
-    # Faster key repeat (lower = faster)
+    # Faster key repeat. Both are counts of ~15ms ticks, and both go below what
+    # System Settings > Keyboard offers (its fastest is KeyRepeat 2 / 30ms and
+    # InitialKeyRepeat 15 / 225ms):
+    #   KeyRepeat 1         -> 15ms between repeats
+    #   InitialKeyRepeat 10 -> 150ms before the first repeat
     run defaults write NSGlobalDomain KeyRepeat -int 1
     run defaults write NSGlobalDomain InitialKeyRepeat -int 10
 
     # Enable full keyboard navigation (Tab through all UI controls)
     run defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
-    # Disable press-and-hold for character picker (enables key repeat)
+    # Disable press-and-hold for the diacritic picker. This is the gate: with
+    # press-and-hold on, held keys open the character popover instead of
+    # repeating, and the two values above appear to do nothing.
     run defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
     # Expand save panel by default
@@ -458,7 +464,12 @@ configure_macos() {
     # Raycast: Set hotkey to Command+Space
     run defaults write com.raycast.macos raycastGlobalHotkey -string "Command-49"
 
-    success "macOS settings configured (some may require logout/restart)"
+    # No `killall cfprefsd` here: HIToolbox reads the keyboard values once per
+    # app at launch, so flushing the prefs daemon does not re-rate a running
+    # app, and killing it right after these writes risks dropping them.
+    success "macOS settings configured"
+    warn "Keyboard: key repeat needs a REBOOT (log out at minimum) — until then"
+    warn "  every already-running app keeps the key repeat rate it launched with."
 }
 
 backup_existing() {
@@ -894,6 +905,9 @@ print_post_install() {
     echo "  6. Marimo AI features need API keys in ~/.secrets:"
     echo "     export ANTHROPIC_API_KEY=\"...\""
     echo "     export OPENAI_API_KEY=\"...\""
+    echo "  7. Reboot to get the fast key repeat (15ms repeat, 150ms delay)."
+    echo "     Every app that is already running keeps the old, slower rate,"
+    echo "     so a terminal you never quit will still feel sluggish."
     if [ "$INSTALL_CLAUDE" = true ]; then
         echo "  * Claude/agent config was installed (--claude)."
     else
