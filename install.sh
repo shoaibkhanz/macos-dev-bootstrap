@@ -682,6 +682,42 @@ configure_zsh() {
     fi
 }
 
+# Put Homebrew's bin dirs on the NON-INTERACTIVE PATH, via ~/.zshenv.
+#
+# `ssh host 'cmd'` runs zsh non-login and non-interactive, so only /etc/zshenv
+# and ~/.zshenv are read: /etc/zprofile — and with it path_helper — never runs,
+# and /opt/homebrew/bin is absent. Anything probing this host over exactly that
+# shell then sees a bare PATH. The Moshi iOS app detects multiplexers that way,
+# so without this it cannot find herdr, mosh-server, or tmux and silently falls
+# back to a plain login shell. ~/.zshrc is the wrong place: non-interactive
+# shells never read it.
+configure_noninteractive_path() {
+    info "Adding Homebrew to the non-interactive PATH (~/.zshenv)..."
+
+    local zshenv="$HOME/.zshenv"
+    if [ -f "$zshenv" ] && grep -q '/opt/homebrew/bin' "$zshenv"; then
+        success "Homebrew already on the non-interactive PATH"
+        return 0
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}[DRY-RUN]${NC} append Homebrew PATH guard to $zshenv"
+        return 0
+    fi
+
+    cat >> "$zshenv" <<'ZSHENV'
+
+# Homebrew on the NON-INTERACTIVE PATH — `ssh host 'cmd'` reads only
+# /etc/zshenv and this file, so path_helper never runs. Guarded so login
+# shells don't collect a duplicate entry. Added by macos-dev-bootstrap.
+case ":$PATH:" in
+  *":/opt/homebrew/bin:"*) ;;
+  *) export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" ;;
+esac
+ZSHENV
+    success "Homebrew added to the non-interactive PATH"
+}
+
 install_tpm() {
     info "Setting up Tmux Plugin Manager (TPM)..."
 
@@ -969,6 +1005,7 @@ main() {
     step "herdr plugins"       install_herdr_plugins
     step "git config"          configure_git
     step "default shell"       configure_zsh
+    step "non-interactive PATH" configure_noninteractive_path
     step "tmux plugins"        install_tpm
     step "neovim providers"    install_neovim_providers
     step "secrets template"    create_secrets_template

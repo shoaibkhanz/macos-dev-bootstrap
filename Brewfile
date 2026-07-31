@@ -21,6 +21,7 @@ end
 tap "oven-sh/bun", trusted: true       # bun
 tap "sst/tap", trusted: true           # opencode
 tap "hashicorp/tap", trusted: true     # terraform (no longer in homebrew-core since BSL relicense)
+tap "rjyo/moshi", trusted: true        # moshi-hook (Moshi mobile terminal)
 
 # =============================================================================
 # Core CLI Tools
@@ -105,6 +106,16 @@ brew "posting"         # API testing TUI
 # Database
 # =============================================================================
 brew "postgresql@14"
+
+# =============================================================================
+# Remote Access (Moshi from iOS, over Tailscale)
+# =============================================================================
+# Installing these is not enough on its own — sshd must be enabled and the host
+# joined to the tailnet. Both need admin/interactive auth, so they are manual:
+# see "Remote access" in README.md.
+brew "tailscale"       # WireGuard mesh; the only network path in to this host
+brew "mosh"            # Roaming UDP shell; survives phone network switches
+brew "moshi-hook"      # Easy Pair + agent event hooks for the Moshi iOS app
 
 # =============================================================================
 # Casks (GUI Applications)

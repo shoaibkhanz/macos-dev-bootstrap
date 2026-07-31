@@ -189,6 +189,9 @@ docker, docker-compose, lazydocker
 **Utilities:**
 btop, superfile, yazi, ffmpeg, imagemagick, pandoc, chafa
 
+**Remote access:**
+tailscale, mosh, moshi-hook (via `rjyo/moshi`) — see [Remote access](#remote-access-moshi-from-ios-over-tailscale)
+
 **Apps:**
 ghostty, raycast, codex, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped with `--work`): handy.
 
@@ -209,6 +212,112 @@ ghostty, raycast, codex, ngrok, gcloud-cli, nerd fonts. Personal-only (skipped w
 | `NSAutomaticSpellingCorrectionEnabled = false` | No auto-correct |
 | `NSAutomaticQuoteSubstitutionEnabled = false` | No smart quotes |
 | `raycastGlobalHotkey = Command-49` | Raycast opens with Command+Space |
+
+## Remote access (Moshi from iOS, over Tailscale)
+
+Drive herdr and its agents from an iPhone with [Moshi](https://getmoshi.app). The
+brew entries land via `Brewfile`, but the rest needs admin rights, a browser
+login and a QR scan, so it stays manual and one-time-per-machine.
+
+**Threat model:** the tailnet is the only way in. `sshd` is key-only, so even on
+an untrusted LAN there is no password to guess, and no port is forwarded from
+the router.
+
+### 1. Enable Remote Login
+
+`sudo systemsetup -setremotelogin on` **fails** unless the calling terminal holds
+Full Disk Access (`Turning Remote Login on or off requires Full Disk Access
+privileges`). Going straight to launchd avoids the TCC prompt entirely. The
+service label is `com.openssh.sshd` — `com.apple.ssh` is the alias `systemsetup`
+uses, and enabling that one alone leaves the plist's `Disabled => 1` in force:
+
+```bash
+sudo launchctl enable system/com.openssh.sshd
+sudo launchctl bootstrap system /System/Library/LaunchDaemons/ssh.plist
+nc -z 127.0.0.1 22 && echo "sshd listening"
+```
+
+`launchctl print system/com.openssh.sshd` reporting `state = not running` is
+correct — the job is socket-activated and only spawns on a connection.
+
+### 2. Make sshd key-only
+
+`/etc/ssh/sshd_config` already ends with `Include /etc/ssh/sshd_config.d/*`, and
+sshd takes the **first** value it sees for a keyword, so the `010-` prefix wins
+over the shipped `100-macos.conf` and anything added later:
+
+```bash
+sudo tee /etc/ssh/sshd_config.d/010-moshi-hardening.conf <<'EOF'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+EOF
+sudo /usr/sbin/sshd -T | grep -E 'passwordauthentication|permitrootlogin'
+```
+
+No restart needed (socket-activated sshd re-reads config per connection).
+Verify a password login is refused — the reply must name `publickey` only:
+
+```bash
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no "$USER@127.0.0.1"
+# ai@127.0.0.1: Permission denied (publickey).
+```
+
+### 3. Join the tailnet
+
+`brew install tailscale` is the CLI daemon, not the GUI app: it runs at boot as a
+system daemon rather than only while a user is logged in, which is what a
+remotely-reached machine needs.
+
+```bash
+sudo brew services start tailscale
+sudo tailscale up --ssh=false --operator="$USER"
+tailscale status --json | jq -r '.Self.DNSName'
+```
+
+`--ssh=false` is **load-bearing**. Tailscale SSH is a *different* server that
+seizes port 22 for all tailnet traffic and authenticates by Tailscale identity,
+bypassing `sshd` and `authorized_keys` completely — Moshi's key would never be
+checked, and the connection hangs ~60s before a misleading auth error. Symptom:
+every port works over the tailnet address *except* 22.
+`--operator` lets you run `tailscale` without `sudo`.
+
+### 4. Pair Moshi
+
+Install Tailscale on the phone and sign in to the same tailnet first, or the
+connection has no route. Then pair against the MagicDNS name — **never** the LAN
+IP, which would defeat the point:
+
+```bash
+moshi-hook host setup --host "$(tailscale status --json | jq -r '.Self.DNSName' | sed 's/\.$//')" \
+                      --user "$USER" --port 22 --name "$(scutil --get LocalHostName) (tailnet)"
+```
+
+Scan the QR in Moshi → Easy Pair. It is a bearer token: anyone who scans it
+before it expires gets SSH access. `moshi-hook host list` shows pairings and
+`moshi-hook host revoke` removes one.
+
+### Herdr on the phone
+
+Moshi detects herdr by running `herdr session list --json` over a
+**non-interactive** SSH shell, which is why `configure_noninteractive_path` puts
+Homebrew on `~/.zshenv` — see that function's comment. Confirm with:
+
+```bash
+ssh <host> 'command -v herdr mosh-server tmux'
+```
+
+Two settings must be changed by hand, because `herdr/config.toml` here departs
+from herdr's defaults:
+
+- **Settings → Shortcuts → Herdr → prefix must be `Ctrl-A`.** Moshi defaults the
+  panel to `Ctrl-B`; every shortcut it sends is otherwise ignored.
+- **The panel's tab row will not switch tabs.** `next_tab`/`previous_tab` are
+  rebound to direct `Ctrl-N`/`Ctrl-P` (no prefix), so the panel's `prefix`+`n`
+  chord no longer matches. Use `Ctrl-N`/`Ctrl-P`, or `prefix`+`w` for workspaces.
+
+Only sessions whose server is *running* appear in the picker; the always-present
+`default` entry is filtered out while stopped. Start one with `herdr` on the host.
 
 ## Post-Install
 
