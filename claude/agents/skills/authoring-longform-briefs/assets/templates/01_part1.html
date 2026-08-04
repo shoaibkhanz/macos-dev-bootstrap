@@ -1,0 +1,150 @@
+<div class="part" id="part1" data-bm="Part I &mdash; Foundations">
+  <div class="part-inner">
+    <div class="part-num">Part I</div>
+    <div class="part-title">Foundations: building the vocabulary</div>
+    <hr class="part-rule">
+    <div class="part-blurb">What this part delivers, and why it comes before the argument
+    rather than after it.</div>
+  </div>
+</div>
+
+<h1 class="chapter" id="ch1" data-bm="1. The shape of a fragment">
+  <span class="num">Chapter One</span>
+  The shape of a fragment
+</h1>
+<p class="lead">One paragraph saying what this chapter is for and what the reader will be
+able to do afterwards. Never a summary of the conclusions &mdash; the chapter has not
+earned them yet.</p>
+
+<h2 id="s1-1">1.1 What the build does for you</h2>
+
+<p>Body prose is justified and hyphenated by the stylesheet; do not override either.
+Paragraphs after the first are indented automatically, so never insert blank-line
+spacers or non-breaking spaces to fake vertical rhythm.</p>
+
+<div class="defn">
+  <span class="term">Fragment</span>
+  <p>One ordered HTML file holding a bare sequence of block elements. The build script
+  discovers every <code>NN*.html</code> in the directory and concatenates them in
+  filename order, so a document under construction still renders.</p>
+</div>
+
+<div class="quote">
+  <p class="q-text">&ldquo;A quotation earns its callout only when the exact wording
+  carries the weight &mdash; a normative <span class="sc">must</span>, a number you rely
+  on, or a concession against interest.&rdquo;</p>
+  <p class="q-src"><span class="who">Author Name</span>, role and organisation,
+  <em>Title of the work</em>, 4 August 2026
+  <span class="url">example.org/path/to/the/source</span></p>
+</div>
+
+<p>Immediately after a quotation, do something with it: extract the consequence,
+disagree with it, qualify it, or connect it forward. A quotation followed by the next
+heading is decoration.</p>
+
+<h2 id="s1-2">1.2 The component vocabulary</h2>
+
+<table>
+  <thead><tr><th>Component</th><th>Rhetorical job</th><th>Budget</th></tr></thead>
+  <tbody>
+    <tr><td><code>defn</code></td><td>First formal definition of a term</td><td>Every term, once</td></tr>
+    <tr><td><code>box</code></td><td>Caveat, aside, recognition heuristic</td><td>One or two per chapter</td></tr>
+    <tr><td><code>box dark</code></td><td>A conclusion that must not be skimmed past</td><td class="yes">One per chapter</td></tr>
+    <tr><td><code>keypanel</code></td><td>The load-bearing statements of the document</td><td class="yes">Two to four in total</td></tr>
+  </tbody>
+</table>
+<p class="tcap">Emphasis is a budget: every element you promote devalues the others.</p>
+
+<pre><code>./make.sh                 # check, render, verify
+./make.sh ~/Desktop/x.pdf # same, to a chosen path</code></pre>
+<p class="codecap">Every code block gets a caption saying what the reader should notice.</p>
+
+<figure>
+<svg viewBox="0 0 480 176" width="480" height="176" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .lc{font-family:"EB Garamond",serif;font-size:9px;fill:#111;text-anchor:middle}
+    .t{font-family:"EB Garamond",serif;font-size:9.6px;fill:#111;text-anchor:middle;font-weight:bold}
+    .s{font-family:"EB Garamond",serif;font-size:7.8px;fill:#555;text-anchor:middle}
+    .b{fill:#fff;stroke:#111;stroke-width:0.8}
+    .bg{fill:#ececec;stroke:#111;stroke-width:0.7}
+    .bd{fill:#2f2f2f;stroke:#111;stroke-width:0.8}
+    .a{stroke:#111;stroke-width:0.9;fill:none}
+  </style>
+  <text x="240" y="16" class="t">The two-pass render</text>
+
+  <rect x="16" y="34" width="104" height="40" class="bg" rx="1"/>
+  <text x="68" y="52" class="lc">Fragments</text>
+  <text x="68" y="64" class="s">NN_*.html, in order</text>
+
+  <path d="M124 54 L172 54" class="a"/>
+  <polygon points="178,54 170,50.5 170,57.5" fill="#111"/>
+
+  <rect x="180" y="34" width="120" height="40" class="b" rx="1"/>
+  <text x="240" y="52" class="lc">Pass 1: render</text>
+  <text x="240" y="64" class="s">read page anchors</text>
+
+  <path d="M304 54 L352 54" class="a"/>
+  <polygon points="358,54 350,50.5 350,57.5" fill="#111"/>
+
+  <rect x="360" y="34" width="104" height="40" class="bd" rx="1"/>
+  <text x="412" y="52" class="lc" style="fill:#fff">Pass 2: render</text>
+  <text x="412" y="64" class="s" style="fill:#ddd">numbers injected</text>
+
+  <path d="M412 78 L412 104 L240 104 L240 116" class="a" stroke-dasharray="3 2"/>
+  <polygon points="240,122 236.5,114 243.5,114" fill="#111"/>
+  <text x="326" y="99" class="s">repeat until pagination stops moving</text>
+
+  <rect x="16" y="132" width="448" height="26" class="bg"/>
+  <text x="240" y="149" class="lc">A table of contents whose page numbers are true, not decorative.</text>
+</svg>
+<figcaption><span class="fignum">Figure 1.</span> How a contents page acquires real page
+numbers when CSS leaders cannot supply them.</figcaption>
+</figure>
+
+<div class="readfig">
+  <div class="rf-title">Reading Figure 1</div>
+  <ol>
+    <li><strong>The dark box is the pass that matters.</strong> It is the only render whose
+    output is written to disk; the earlier passes exist to discover facts.</li>
+    <li><strong>The dashed return path encodes iteration, not failure.</strong> Injecting
+    page numbers changes line lengths, which can change pagination.</li>
+    <li><strong>The relationship is fixed-point, not sequential.</strong> The loop ends when
+    the anchor map is identical to the previous pass.</li>
+    <li><strong>What the figure does not show</strong> is the structural check that runs
+    before any of this, because it never touches the renderer.</li>
+    <li><strong>Leave with this:</strong> a contents page is only as honest as the pass that
+    measured it.</li>
+  </ol>
+</div>
+
+<div class="box">
+  <div class="box-title">How to recognise a missing font</div>
+  <p>Text still renders, so nothing errors &mdash; but the measure changes and the page count
+  moves. Verify embedding in the PDF rather than trusting the build log.</p>
+</div>
+
+<div class="box dark">
+  <div class="box-title">The property everything else follows from</div>
+  <p>If a reader cannot check a claim against a named, dated, addressable source, the claim
+  is decoration. One dark box per chapter; this is that chapter&rsquo;s.</p>
+</div>
+
+<table class="proscons">
+  <thead><tr><th class="pc-int">Authoring in fragments</th><th class="pc-ext">Authoring in one file</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="pc-label">For</span>
+        <ul><li class="plus">Rewrite one chapter without touching the rest</li>
+            <li class="plus">Renders before the document is finished</li></ul></td>
+      <td><span class="pc-label">For</span>
+        <ul><li class="plus">One place to search</li></ul></td>
+    </tr>
+    <tr class="pc-cons">
+      <td><span class="pc-label">Against</span>
+        <ul><li class="minus">Cross-references must be checked mechanically</li></ul></td>
+      <td><span class="pc-label">Against</span>
+        <ul><li class="minus">Every edit risks the whole document</li>
+            <li class="minus">Unrenderable until complete</li></ul></td>
+    </tr>
+  </tbody>
+</table>
