@@ -38,6 +38,9 @@ from weasyprint import HTML
 FRAGMENT_RE = re.compile(r"^\d.*\.html$")
 ANCHOR_RE = re.compile(r'<a\s+href="#([A-Za-z0-9_.:-]+)"((?:\s+[^>]*?)?)>')
 DATA_PG_RE = re.compile(r'\s+data-pg="[^"]*"')
+# Components drawn with a border: a break inside one leaves the border open at the page
+# edge and drops the padding, so the body text touches the rule.
+BORDERED_COMPONENTS = {"keypanel", "box", "defn", "quote", "readfig", "proscons"}
 
 
 def fragments(build_dir: Path) -> list[Path]:
@@ -88,6 +91,60 @@ def inject_toc_numbers(html: str, numbers: dict[str, int]) -> str:
     return ANCHOR_RE.sub(replace, html)
 
 
+def _descendants(box):
+    yield box
+    for child in getattr(box, "children", ()) or ():
+        yield from _descendants(child)
+
+
+def audit_layout(document) -> int:
+    """Report boxes that break the page frame.  Returns the defect count.
+
+    Neither ``check.py`` (source text) nor ``verify_pdf.py`` (PDF objects) can see
+    geometry, so this is the only place a table that runs off the right edge of the
+    paper, or a bordered component that has quietly become three pages long, is
+    detectable.  Both were shipped undetected once.
+    """
+    mm = 96 / 25.4
+    wide: list[tuple[int, float, str]] = []
+    spans: dict[int, tuple[str, list[int]]] = {}
+
+    for number, page in enumerate(document.pages, start=1):
+        page_box = page._page_box
+        limit = page_box.content_box_x() + page_box.width
+        worst: tuple[float, str] | None = None
+        for box in _descendants(page_box):
+            element = getattr(box, "element", None)
+            if element is None or element.tag in ("html", "body"):
+                continue
+            try:
+                overhang = box.position_x + box.margin_width() - limit
+            except (AttributeError, TypeError):
+                continue
+            if overhang > 0.5 and (worst is None or overhang > worst[0]):
+                classes = (element.get("class") or "").split()
+                label = element.tag + ("." + ".".join(classes) if classes else "")
+                worst = (overhang, label)
+            names = set((element.get("class") or "").split())
+            if names & BORDERED_COMPONENTS:
+                key = id(element)
+                label = sorted(names & BORDERED_COMPONENTS)[0]
+                spans.setdefault(key, (label, []))[1].append(number)
+        if worst is not None:
+            wide.append((number, worst[0], worst[1]))
+
+    split = [(label, sorted(set(pages))) for label, pages in spans.values() if len(set(pages)) > 1]
+
+    print("\nLayout audit:")
+    for number, overhang, label in wide:
+        print(f"  overflow  p{number}: <{label}> runs {overhang / mm:.1f}mm past the measure")
+    for label, pages in split:
+        print(f"  split box .{label} spans pages {pages}")
+    defects = len(wide) + len(split)
+    print(f"  {defects} layout defect(s)" if defects else "  no layout defects")
+    return defects
+
+
 def build(build_dir: Path, out_pdf: Path, max_passes: int) -> int:
     print("Assembling fragments:")
     base_html = assemble(build_dir)
@@ -116,7 +173,9 @@ def build(build_dir: Path, out_pdf: Path, max_passes: int) -> int:
     print(f"\n  pages : {len(document.pages)}")
     print(f"  size  : {out_pdf.stat().st_size / 1024:,.0f} KB")
     print(f"  path  : {out_pdf}")
-    return 0
+    # The PDF is written either way: a layout defect is worth reading the report over,
+    # not worth withholding the artefact you need in order to look at it.
+    return 2 if audit_layout(document) else 0
 
 
 def main(argv: list[str] | None = None) -> int:

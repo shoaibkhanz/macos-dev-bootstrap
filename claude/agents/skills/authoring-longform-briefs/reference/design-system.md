@@ -68,10 +68,11 @@ warns you — `check.py` is what catches it.
 | Box | `<div class="box"><div class="box-title">…</div>…</div>` | a caveat, an aside, a "how to recognise this" note |
 | Dark box | `<div class="box dark">` | a conclusion that must not be skimmed past — one per chapter |
 | Plain box | `<div class="box plain">` | a rule-bounded aside with no fill |
-| Key panel | `<div class="keypanel"><div class="kp-head">Title <span class="kp-tag">developed in ch. N</span></div><div class="kp-body"><p class="kp-punch">…</p>…</div></div>` | the two to four load-bearing statements of the whole document |
+| Key panel | `<div class="keypanel"><div class="kp-head">Title <span class="kp-tag">developed in ch. N</span></div><div class="kp-body"><p class="kp-punch">…</p>…</div></div>` | the two to four load-bearing statements of the whole document; punch line, one table, one caption, **≤ 200 words of prose** so it stays on one page — the rest goes in prose under the box |
 | Figure | `<figure><svg…></svg><figcaption><span class="fignum">Figure N.</span> …</figcaption></figure>` | any diagram |
 | Walkthrough | `<div class="readfig"><div class="rf-title">Reading Figure N</div><ol>…</ol></div>` | **mandatory** after every figure |
 | Table | `<table>` / `<table class="long">` + `<p class="tcap">` | comparisons; `long` only if it must break across pages |
+| Fixed columns | `<table class="cols"><colgroup><col style="width:27%">…</colgroup>` | only when automatic allocation starves a column; percentages are border-box and must sum to 100 |
 | Pros/cons | `<table class="proscons">` with `<li class="plus">` / `<li class="minus">` | two-sided decisions; the `+`/`–` markers come from CSS |
 | Before/after | `<table class="beforeafter">` with `<td class="was">` | what a change obsoletes; `was` strikes through |
 | Code | `<pre><code>` + `<p class="codecap">` | always captioned; `class="long"` if it may break |
@@ -212,3 +213,27 @@ prose in the document.
 11. **macOS only:** WeasyPrint `dlopen()`s pango at import time and dyld reads
     `DYLD_FALLBACK_LIBRARY_PATH` only from the process environment. Setting it inside
     Python is too late; `make.sh` exports it before the interpreter starts.
+12. **`overflow-wrap: break-word` does not stop a table running off the paper.** Per
+    spec it is ignored when computing min-content width, so automatic table layout
+    sizes a column to the longest unbreakable `<code>` path in it and the table
+    overflows the measure — content is printed past the right page edge, silently.
+    `overflow-wrap: anywhere` breaks lines identically but *does* count towards
+    min-content, and is what the stylesheet sets. Verified on WeasyPrint 69.
+13. **Column widths are a redistribution, not a cure.** `table.cols` + a `<colgroup>`
+    of percentages (border-box, summing to 100) fixes a column starved to a few
+    characters. It cannot fix a table whose columns each need 36 mm in a 127 mm
+    measure — that table wants one column fewer, folded into a neighbour with a
+    run-in clause.
+14. **A `keypanel` that outgrows a page stops being a panel.** It breaks with its
+    border open at both page edges and its padding dropped, so body text touches the
+    rule for pages at a time. `check.py` caps `.kp-body` at `KEYPANEL_WORDS`;
+    reasoning that does not fit goes in ordinary prose *under* the box, where it reads
+    better anyway.
+15. **A floated `.kp-tag` drops below a long head title** and reads as a second line of
+    the dark bar rather than a corner marker. It is absolutely positioned against a
+    `position: relative` head that reserves its column, so the corner is the corner
+    whether the title wraps or not.
+16. **Neither checker can see geometry.** `check.py` reads source text, `verify_pdf.py`
+    reads PDF objects; overflow past the measure and a bordered box spanning pages are
+    invisible to both. `build.py`'s layout audit walks the WeasyPrint box tree and is
+    the only thing that reports them — it exits 2 and still writes the PDF.

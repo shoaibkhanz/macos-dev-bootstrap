@@ -25,7 +25,8 @@ Two rules carry more weight than the rest of this document combined:
 SKILL=~/.claude/skills/authoring-longform-briefs
 $SKILL/scripts/install-fonts.sh                       # once per machine
 $SKILL/scripts/new-brief.sh ~/work/my-brief "Title" "Subtitle"
-cd ~/work/my-brief && ./make.sh                       # check → render → verify
+cd ~/work/my-brief && ./make.sh                       # check → render+audit → verify
+./make.sh --install ~/Vault/PDFs/Brief.pdf            # same, then copy iff every stage is clean
 ```
 
 `new-brief.sh` copies the design system, creates a venv, and renders a valid
@@ -42,9 +43,14 @@ ten-page skeleton **before you have written anything**. Author into that skeleto
 
 | Command | Proves |
 |---|---|
-| `./make.sh` | the whole loop: structure, render, PDF |
-| `python3 check.py` | anchors, figure/walkthrough pairing, greyscale, class typos, tag balance, emphasis budget |
+| `./make.sh` | the whole loop: structure, render, layout, PDF |
+| `python3 check.py` | anchors, figure/walkthrough pairing, greyscale, class typos, tag balance, emphasis and key-panel budgets |
+| `python3 build.py` | renders, then audits the box tree: nothing past the measure, no bordered box spanning pages |
 | `python3 verify_pdf.py out/x.pdf` | fonts actually embedded, TOC numbers true, bookmark tree nested, no LaTeX leak, no half-empty pages |
+
+**The layout audit is the only thing that can see geometry.** A four-column table of
+file paths prints straight off the right edge of the paper and neither the source
+checker nor the PDF checker will say a word; the audit measures it.
 
 **The font check is the one that saves the document.** A missing font never errors;
 WeasyPrint substitutes silently and the entire design collapses.
@@ -85,6 +91,12 @@ it you get `Chapter SevenThe full chapter title` in the outline.
 Wanting a second dark box in a chapter means the chapter has two points and should be
 two chapters. Title the loud elements with a **claim**, not a topic: "The property
 everything else follows from", not "Security considerations".
+
+A `keypanel` is a panel: punch line, one table, one caption, at most 200 words of prose,
+one page. `check.py` enforces the word budget, because a panel that outgrows the page
+breaks with its border open at both page edges and its padding dropped, and reads as a
+chapter with a rule down the side. Reasoning that will not fit belongs in ordinary prose
+directly under the box.
 
 ## Diagrams
 

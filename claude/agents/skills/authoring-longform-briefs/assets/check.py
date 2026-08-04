@@ -20,7 +20,8 @@ Checks
  5  greyscale only -- any non-grey hex is a defect
  6  <text class=... fill=...> in SVG (the class wins; the fill is a lie)
  7  class whitelist, derived from style.css plus per-fragment SVG <style>
- 8  emphasis budget: <=1 dark box per chapter, keypanel only in front matter
+ 8  emphasis budget: <=1 dark box per chapter, keypanel only in front matter,
+    keypanel body inside the word budget that keeps it on one page
  9  chapter/part shape: id + data-bm present (bookmark and running head)
 10  straight quotes and apostrophes in prose (typographic hygiene)
 """
@@ -39,6 +40,8 @@ FRAGMENT_RE = re.compile(r"^\d.*\.html$")
 VOID = {"br", "hr", "img", "meta", "link", "input", "col", "source",
         "path", "polygon", "rect", "circle", "line", "ellipse", "polyline",
         "use", "stop", "image"}
+# Words of prose (tables excluded) a .kp-body may hold before the panel outgrows a page.
+KEYPANEL_WORDS = 200
 
 FORBIDDEN = [
     (r"<script", "script tag"),
@@ -96,6 +99,20 @@ def toc_entries(front: str) -> tuple[list[str], dict[str, str]]:
         ids.append(anchor)
         titles[anchor] = text
     return ids, titles
+
+
+def balanced_div(text: str, start: int) -> str:
+    """Content of the ``<div>`` already opened at ``start``, up to its own closer.
+
+    Newline-anchored regexes get this wrong the moment an author writes a panel on
+    one line, and getting it wrong means the budget silently stops being enforced.
+    """
+    depth = 1
+    for match in re.finditer(r"<div\b|</div>", text[start:]):
+        depth += 1 if match.group(0) == "<div" else -1
+        if depth == 0:
+            return text[start : start + match.start()]
+    return text[start:]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -227,6 +244,18 @@ def main(argv: list[str] | None = None) -> int:
                 cid = re.search(r'id="([^"]+)"', head)
                 notes.append(f"{name}: {cid.group(1) if cid else '?'} has {count} dark boxes "
                              "(budget 1; a chapter with two points should be two chapters)")
+        # A keypanel is a panel, not a chapter with a rule down the side.  Punch line,
+        # table, caption -- reasoning that does not fit belongs in prose under the box.
+        # Past this budget the panel outgrows a page and breaks across the page edge
+        # with its border left open and its padding dropped.
+        for start in (m.end() for m in re.finditer(r'<div class="kp-body"[^>]*>', text)):
+            body = balanced_div(text, start)
+            prose = re.sub(r"<table.*?</table>", " ", body, flags=re.S)
+            count = len(re.sub(r"<[^>]+>", " ", prose).split())
+            if count > KEYPANEL_WORDS:
+                line = text[:start].count("\n") + 1
+                problems.append(f"{name}:{line}: keypanel body is {count} words "
+                                f"(budget {KEYPANEL_WORDS}; it will not fit on one page)")
 
     # 9 -- chapter and part shape -----------------------------------------------
     for name, text in body_parts:

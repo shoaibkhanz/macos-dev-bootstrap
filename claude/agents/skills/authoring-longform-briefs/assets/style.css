@@ -321,10 +321,16 @@ code {
   border-radius: 1pt;
   /* An identifier must never be hyphenated: "DE-FAULT" and "Mod-elRetry" are not
      the names in the source. Break only where a word genuinely cannot fit, and
-     break without inserting a hyphen. */
+     break without inserting a hyphen.
+
+     `anywhere` rather than `break-word`: the two break lines identically, but only
+     `anywhere` lets those break opportunities count towards the min-content width.
+     A cell holding `tests/unit/decode/harness/test_decisions.py:68-79` otherwise
+     reports a min-content width of the whole path, automatic table layout honours
+     it, and a four-column table runs off the right edge of the paper. */
   hyphens: none;
   -weasy-hyphens: none;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* Walkthroughs sit in a narrow, indented measure and are dense with identifiers.
@@ -495,6 +501,13 @@ table {
   line-height: 1.34;
 }
 table.long { page-break-inside: auto; }
+/* Automatic layout hands out leftover width in proportion to max-content, so a column
+   holding nothing but short identifiers, sitting beside columns holding sentences, is
+   starved to a few characters and `ApprovalRequired` breaks three ways.  When that
+   happens, add this class and a <colgroup> of percentages summing to 100; they are
+   border-box widths, padding included.  Widths are only a redistribution: if every
+   column needs 36mm the table does not fit the measure and wants a column fewer. */
+table.cols { table-layout: fixed; }
 th {
   text-align: left;
   font-weight: 700;
@@ -626,8 +639,21 @@ h1.chapter.appendix { bookmark-level: 1; }
 .keypanel {
   margin: 0 0 5mm 0;
   border: 1.4pt solid #111;
+  /* A panel is a panel: it holds the punch line, the table and the caption, and it
+     fits on one page. Kept breakable and it silently becomes a chapter with a rule
+     down the side -- an open border top and bottom, and body text touching the
+     border because padding is not repeated at a fragment edge. The word budget in
+     check.py is the other half of this rule; `clone` is the safety net for a panel
+     that still cannot fit, so each fragment at least closes. */
+  page-break-inside: avoid;
+  box-decoration-break: clone;
+  -weasy-box-decoration-break: clone;
 }
 .keypanel .kp-head {
+  /* The tag belongs in the top-right corner, so it is taken out of flow and the head
+     reserves its column. Floated, it drops below a long title and reads as a second
+     line of the bar instead of a corner marker. */
+  position: relative;
   page-break-after: avoid;
   background: #2f2f2f;
   color: #fff;
@@ -635,13 +661,14 @@ h1.chapter.appendix { bookmark-level: 1; }
   letter-spacing: 0.1em;
   font-size: 9.4pt;
   font-weight: 700;
-  padding: 1.8mm 3mm;
-  /* Contains the floated .kp-tag. Without a block formatting context here, a tag
-     that wraps below a long title escapes the dark bar and overlaps the border. */
-  overflow: hidden;
+  padding: 1.8mm 34mm 1.8mm 3mm;
 }
 .keypanel .kp-head .kp-tag {
-  float: right;
+  position: absolute;
+  top: 2.1mm;
+  right: 3mm;
+  width: 29mm;
+  text-align: right;
   font-variant: normal;
   letter-spacing: 0;
   font-size: 8pt;
