@@ -38,9 +38,10 @@ from weasyprint import HTML
 FRAGMENT_RE = re.compile(r"^\d.*\.html$")
 ANCHOR_RE = re.compile(r'<a\s+href="#([A-Za-z0-9_.:-]+)"((?:\s+[^>]*?)?)>')
 DATA_PG_RE = re.compile(r'\s+data-pg="[^"]*"')
-# Components drawn with a border: a break inside one leaves the border open at the page
-# edge and drops the padding, so the body text touches the rule.
-BORDERED_COMPONENTS = {"keypanel", "box", "defn", "quote", "readfig", "proscons"}
+# Components drawn with a border on all four sides: a break inside one leaves the border
+# open at the page edge and drops the padding, so the body text touches the rule.
+# `readfig` is deliberately absent -- it is ruled on one edge only and breaks cleanly.
+BORDERED_COMPONENTS = {"keypanel", "box", "defn", "quote", "proscons"}
 
 
 def fragments(build_dir: Path) -> list[Path]:

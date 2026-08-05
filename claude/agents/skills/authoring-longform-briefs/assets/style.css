@@ -49,6 +49,12 @@
   @top-center { content: none; }
   @bottom-center { content: none; }
 }
+/* A chapter opener already names itself in 15.5pt type; repeating that name in the
+   running head three centimetres above it is noise.  Folio only. */
+@page chapteropen {
+  @top-center { content: none; }
+}
+
 
 /* ---------- base ---------- */
 
@@ -244,6 +250,7 @@ h1.chapter {
   margin: 0 0 4.5mm 0;
   padding-bottom: 2.4mm;
   border-bottom: 0.5pt solid #111;
+  page: chapteropen;
   page-break-before: always;
   page-break-after: avoid;
   text-align: left;
@@ -323,14 +330,17 @@ code {
      the names in the source. Break only where a word genuinely cannot fit, and
      break without inserting a hyphen.
 
-     `anywhere` rather than `break-word`: the two break lines identically, but only
-     `anywhere` lets those break opportunities count towards the min-content width.
-     A cell holding `tests/unit/decode/harness/test_decisions.py:68-79` otherwise
-     reports a min-content width of the whole path, automatic table layout honours
-     it, and a four-column table runs off the right edge of the paper. */
+     `break-word`, deliberately, not `anywhere`.  Only `anywhere` lets the break
+     opportunities count towards min-content width, and that is exactly what you do
+     not want by default: automatic table layout then reads every identifier column
+     as one character wide, starves it, and shatters `ApprovalRequired` into three
+     fragments.  Keeping min-content at the full identifier is what sizes those
+     columns correctly.  The cost is that a table whose columns genuinely cannot all
+     fit overflows the measure instead -- which the layout audit fails the build on,
+     and `table.cols` below is the fix it points you at. */
   hyphens: none;
   -weasy-hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /* Walkthroughs sit in a narrow, indented measure and are dense with identifiers.
@@ -476,7 +486,14 @@ figcaption .fignum {
   padding: 2.4mm 3mm 2.4mm 3.4mm;
   border-left: 0.9pt solid #888;
   background: #fbfbfb;
-  page-break-inside: avoid;
+  /* Breakable, unlike the other bordered components.  A figure is about 40% of the
+     text block and its walkthrough about half; kept whole together they only fit on a
+     page with nothing above them, so every figure that lands mid-chapter leaves half a
+     page empty.  This box is ruled on one edge only, so a break costs nothing visually
+     -- the rule simply continues.  `orphans`/`widows` keep the split honest. */
+  page-break-inside: auto;
+  orphans: 3;
+  widows: 3;
 }
 .readfig .rf-title {
   font-variant: small-caps;
@@ -501,13 +518,20 @@ table {
   line-height: 1.34;
 }
 table.long { page-break-inside: auto; }
+/* A row split down the middle of a page break prints its first cells above the fold and
+   the rest below under empty headers -- it reads as two half-rows, not one. */
+tr { page-break-inside: avoid; }
 /* Automatic layout hands out leftover width in proportion to max-content, so a column
    holding nothing but short identifiers, sitting beside columns holding sentences, is
    starved to a few characters and `ApprovalRequired` breaks three ways.  When that
    happens, add this class and a <colgroup> of percentages summing to 100; they are
    border-box widths, padding included.  Widths are only a redistribution: if every
-   column needs 36mm the table does not fit the measure and wants a column fewer. */
+   column needs 36mm the table does not fit the measure and wants a column fewer.
+
+   Inside a fixed table the author has already chosen the widths, so content must fit
+   them: this is the one place identifiers may break wherever they have to. */
 table.cols { table-layout: fixed; }
+table.cols code { overflow-wrap: anywhere; }
 th {
   text-align: left;
   font-weight: 700;
@@ -527,6 +551,9 @@ td {
 }
 tr:last-child td { border-bottom: 0.7pt solid #111; }
 td code, th code { font-size: 0.86em; background: #eee; }
+/* A caption belongs to the block above it.  Left free it strands at the top of the next
+   page, above an unrelated paragraph, describing something the reader can no longer see. */
+.tcap, .codecap, figcaption { page-break-before: avoid; }
 .tcap {
   font-size: 8.2pt;
   color: #444;
@@ -582,7 +609,9 @@ a.ref { border-bottom: 0.3pt dotted #888; }
   font-size: 10pt;
   margin-top: 2.2mm;
 }
-.gloss dd { font-size: 9.5pt; margin-left: 5mm; text-align: justify; }
+/* A term alone at the foot of a page is a promise the page does not keep. */
+.gloss dt { page-break-after: avoid; }
+.gloss dd { font-size: 9.5pt; margin-left: 5mm; text-align: justify; page-break-inside: avoid; }
 
 /* source register */
 .srclist { list-style: none; padding-left: 0; }

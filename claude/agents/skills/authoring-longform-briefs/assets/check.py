@@ -42,6 +42,10 @@ VOID = {"br", "hr", "img", "meta", "link", "input", "col", "source",
         "use", "stop", "image"}
 # Words of prose (tables excluded) a .kp-body may hold before the panel outgrows a page.
 KEYPANEL_WORDS = 200
+# Characters of JetBrains Mono that fit the `pre` measure at the stylesheet's 7.5pt in a
+# 127mm text block.  A longer line wraps to column 0, which reads as a new statement and
+# destroys the indentation the listing exists to show.  Reflow it in the source instead.
+PRE_COLUMNS = 74
 
 FORBIDDEN = [
     (r"<script", "script tag"),
@@ -256,6 +260,17 @@ def main(argv: list[str] | None = None) -> int:
                 line = text[:start].count("\n") + 1
                 problems.append(f"{name}:{line}: keypanel body is {count} words "
                                 f"(budget {KEYPANEL_WORDS}; it will not fit on one page)")
+
+    # 8b -- code listings must fit the measure ----------------------------------
+    for name, text in body_parts:
+        for match in re.finditer(r"<pre[^>]*>(.*?)</pre>", text, re.S):
+            first = text[: match.start()].count("\n") + 1
+            for offset, raw in enumerate(match.group(1).split("\n")):
+                plain = htmllib.unescape(re.sub(r"<[^>]+>", "", raw)).rstrip()
+                if len(plain) > PRE_COLUMNS:
+                    problems.append(f"{name}:{first + offset}: code line is {len(plain)} columns "
+                                    f"(budget {PRE_COLUMNS}; it wraps to column 0 and the "
+                                    "indentation stops meaning anything)")
 
     # 9 -- chapter and part shape -----------------------------------------------
     for name, text in body_parts:

@@ -159,6 +159,40 @@ the argument, and readers remember the argument.
 
 ## 3. Constructing the argument
 
+### 3.0 Explain, do not compress
+
+The single most common failure in a technical brief is prose that names things instead of
+explaining them. It reads as competent and teaches nothing, because every sentence asks
+the reader to unpack two or three abstractions at once.
+
+> **Bad.** The wrapper adds three things a bare run cannot have. First, *a boundary
+> vocabulary*: named points inside a turn at which the outside world is allowed to
+> intervene. Second, *a phase machine* that makes "busy" observable, so a second
+> keystroke can be routed rather than raced.
+
+Three coined terms in two sentences, each defined by another dense clause. Compare:
+
+> **Good.** While the agent is working, you can still type. Your text does not get thrown
+> away, and it does not crash into the middle of a running turn. It waits in a queue. The
+> priority gate is the moment the runner stops and says: safe spot — anything new from
+> the human? That is it. It is a pickup point for your typed input.
+
+The good version moves in time, uses ordinary words, and gives the technical name only
+once the reader can already picture the thing. Five rules follow from it:
+
+1. **Concept before name.** Never define a coined term with another coined term.
+2. **One new idea per sentence.** Two ideas means two sentences.
+3. **Narrate in time or in causation** — "this happens, which means that, which is why
+   the code does X". A list of three abstract nouns is not an explanation.
+4. **Start from the pain.** One sentence on what goes wrong without the mechanism, before
+   the mechanism. The reader should feel the need before meeting the answer.
+5. **The whiteboard test.** If you would not say the sentence out loud to a colleague,
+   rewrite it.
+
+None of this licenses vagueness. Every fact, file:line citation and status field stays;
+what goes is the habit of packing three concepts into one clause. Explaining costs words —
+budget about 15% more prose than the compressed version, and no more.
+
 ### 3.1 Define before you use
 
 Devote the first part to vocabulary, building from primitives the reader definitely
