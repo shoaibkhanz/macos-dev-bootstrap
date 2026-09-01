@@ -209,3 +209,30 @@ is their source of truth; a vendored copy only goes stale against it.
 This costs nothing at install time: `link_claude_configs` globs
 `claude/agents/skills/*/`, so a machine that has them still gets the symlinks,
 and a machine that does not is unaffected.
+
+# Local skill added: `explaining` — 2026-09-01
+
+Third local skill, beside `authoring-longform-briefs` and the
+`code-hyperlearning` symlink. Structure and prose standards for explaining
+something to a person: docs, ADRs, tickets, docstrings, commit bodies, chat
+answers.
+
+Model-invoked, so it fires while prose is being written rather than only when
+asked for. It divides into two parts that fail separately, structure then prose,
+and structure wins ties.
+
+Complements `writing-for-agents`, which covers documents an *agent* consumes and
+optimises for predictable execution. This one covers documents a *person* reads
+and optimises for whether they can act afterwards. No overlap in scope, so both
+stay model-invoked.
+
+Two changes from the source text, which was written against one specific
+project: its anchors (`ADR 0001`, `plan.md`, `tickets.md`, `static.py`,
+`CONTEXT.md`) named files that do not exist in any other repo, and a skill
+installed in `~/.claude/skills` runs everywhere. Each example was rewritten to
+carry itself, keeping the concrete case and dropping the dead path. The closing
+test also gained an exhaustiveness bar, since a document that is all reference
+needs one to bind it.
+
+No `agents/openai.yaml`: local skills here carry none, and only the vendored
+Matt Pocock set has one because upstream ships it.
