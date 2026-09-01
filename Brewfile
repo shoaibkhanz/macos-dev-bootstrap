@@ -21,9 +21,6 @@ end
 tap "oven-sh/bun", trusted: true       # bun
 tap "sst/tap", trusted: true           # opencode
 tap "hashicorp/tap", trusted: true     # terraform (no longer in homebrew-core since BSL relicense)
-unless work?
-  tap "rjyo/moshi", trusted: true      # moshi-hook — personal-only, see below
-end
 
 # =============================================================================
 # Core CLI Tools
@@ -110,20 +107,25 @@ brew "posting"         # API testing TUI
 brew "postgresql@14"
 
 # =============================================================================
-# Remote Access (Moshi from iOS, over Tailscale) — PERSONAL-ONLY
+# Remote Access (Tailscale SSH) — PERSONAL-ONLY
 # =============================================================================
 # Deliberately skipped on work machines (./install.sh --work). Joining a
-# corporate laptop to a personal WireGuard mesh, and opening a key-authed SSH
-# ingress to it, is a policy problem — not merely clutter. The `rjyo/moshi` tap
-# above is gated with it, so a work machine never even trusts the tap.
+# corporate laptop to a personal WireGuard mesh, and opening an SSH ingress to
+# it, is a policy problem — not merely clutter.
 #
-# Installing these is not enough on its own — sshd must be enabled and the host
-# joined to the tailnet. Both need admin/interactive auth, so they are manual:
-# see "Remote access" in README.md.
+# This is the CLI daemon, NOT the `tailscale-app` cask. That distinction is
+# load-bearing: the GUI variants (App Store and Standalone) *cannot* act as a
+# Tailscale SSH server — only the open-source tailscaled can. The cask would
+# leave this host with no ingress at all. It also runs at boot as a system
+# daemon rather than only while a user is logged in, which is what a remotely
+# reached machine needs.
+#
+# Installing it is not enough on its own — the host must be joined to the
+# tailnet, which needs interactive browser auth: see "Remote access" in
+# README.md. macOS Remote Login (sshd) stays OFF; tailscaled serves port 22 on
+# the tailnet address only.
 unless work?
-  brew "tailscale"     # WireGuard mesh; the only network path in to this host
-  brew "mosh"          # Roaming UDP shell; survives phone network switches
-  brew "moshi-hook"    # Easy Pair + agent event hooks for the Moshi iOS app
+  brew "tailscale"     # WireGuard mesh + Tailscale SSH; the only path in
 end
 
 # =============================================================================

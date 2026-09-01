@@ -305,7 +305,7 @@ install_missing_bundle_entries() {
     # `brew bundle check` re-evaluates the Brewfile, so without it `work?`
     # returns false and every personal-only entry is reported as "missing" —
     # and this function would then install, on a work machine, exactly what
-    # --work exists to keep off it (tailscale, moshi-hook, handy).
+    # --work exists to keep off it (tailscale, handy).
     if [ "$WORK_MODE" = true ]; then
         bundle_env+=(HOMEBREW_BUNDLE_WORK=1)
     fi
@@ -697,12 +697,12 @@ configure_zsh() {
 # `ssh host 'cmd'` runs zsh non-login and non-interactive, so only /etc/zshenv
 # and ~/.zshenv are read: /etc/zprofile — and with it path_helper — never runs,
 # and /opt/homebrew/bin is absent. Anything probing this host over exactly that
-# shell then sees a bare PATH. The Moshi iOS app detects multiplexers that way,
-# so without this it cannot find herdr, mosh-server, or tmux and silently falls
-# back to a plain login shell. ~/.zshrc is the wrong place: non-interactive
-# shells never read it.
+# shell then sees a bare PATH. Tailscale SSH serves commands through it, so
+# without this a remote `ssh host 'herdr …'` cannot find herdr or tmux and
+# silently falls back to a plain login shell. ~/.zshrc is the wrong place:
+# non-interactive shells never read it.
 #
-# Personal-only: it exists solely to make this host reachable from the phone,
+# Personal-only: it exists solely to make this host usable over the tailnet,
 # so --work skips it and leaves a work machine's shell environment untouched.
 configure_noninteractive_path() {
     if [ "$WORK_MODE" = true ]; then
