@@ -29,6 +29,13 @@ credentials.json
 # Neovim
 nvim/lazy-lock.json
 
+# Agent settings holding machine-local absolute paths and tool allowlists.
+# These were protected only by ~/.gitignore_global and .git/info/exclude, and
+# neither travels with a clone or a fork, so the rule belongs here instead.
+# Note the tracked payload directory is `claude/`, without the dot.
+.claude/
+.conductor/
+
 # Machine-local skill symlink (absolute path, not portable)
 claude/agents/skills/code-hyperlearning
 

@@ -58,7 +58,7 @@ export CPPFLAGS="-I/opt/homebrew/opt/zlib/include"
 export EDITOR="nvim"
 export VISUAL="nvim"
 export _ZO_DOCTOR=0  # zoxide init is already last; suppress false positive in subshells
-export PATH="/Users/shoaib/.bun/bin:$PATH"
+export PATH="$HOME/.bun/bin:$PATH"
 
 # API Keys - loaded from separate file for security
 # Edit secrets with: nvim ~/.secrets
