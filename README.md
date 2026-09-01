@@ -459,4 +459,17 @@ If something fails halfway, the `trap ERR` will print the failing line number; j
 
 ## License
 
-MIT - Use however you like.
+MIT, use however you like. Full text in [`LICENSE`](LICENSE).
+
+That covers the original work here: `install.sh`, the dotfiles and app configs,
+the `Brewfile`, this documentation, and the skills marked as local in
+`claude/SKILLS_CLEANUP.md`.
+
+It does not cover the two skill collections vendored into
+`claude/agents/skills/`, which keep their own copyright. Both are MIT as well,
+reproduced in full in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md):
+
+| Collection | Author | Upstream |
+|---|---|---|
+| Superpowers | Jesse Vincent (obra) | https://github.com/obra/superpowers |
+| Skills for Real Engineers | Matt Pocock | https://github.com/mattpocock/skills |
