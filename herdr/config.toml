@@ -83,14 +83,61 @@ command = "herdr-nav-plus.right"
 description = "navigate right (vim/pane)"
 
 [theme]
+# Base theme. [theme.custom] below overrides individual tokens on top of it.
 name = "vesper"
 auto_switch = false
 
-[ui.toast]
-delivery = "herdr"
+# === Active palette: Yugen True (mirrored in herdr/themes/yugen-true.toml) ===
+# herdr's chrome matched to the Yugen colorscheme (nvim) on pure black, so herdr
+# sits seamlessly around black Ghostty and Yugen nvim. Accent is Yugen's peach.
+# herdr-picker-plus reads this block too, so one palette themes both.
+# To switch: paste another block from herdr/themes/ over this one, then `hdrc`.
+[theme.custom]
+panel_bg    = "#000000"
+surface_dim = "#000000"
+surface0    = "#0e0e0e"
+surface1    = "#1a1a1a"
+overlay0    = "#444444"
+overlay1    = "#777777"
+text        = "#d4d4d4"
+subtext0    = "#888888"
+accent      = "#ffbe89"
+green       = "#7eab8e"
+yellow      = "#d8b46f"
+red         = "#cf8b82"
+blue        = "#87afff"
+teal        = "#7fb0a6"
+mauve       = "#b294bb"
+peach       = "#ffbe89"
 
 [ui]
 show_agent_labels_on_pane_borders = true
+tab_bar_position = "bottom"
+pane_scrollbars = false
+hide_tab_bar_when_single_tab = true
+
+# Accent for highlights, borders, and navigation UI — Yugen peach, matching
+# [theme.custom], instead of herdr's default cyan.
+accent = "#ffbe89"
+
+# Draw pane borders, but share dividers instead of leaving gaps (tighter).
+pane_borders = true
+pane_gaps = false
+
+# Agent panel ordering: "spaces" (grouped by space) or "priority" (attention
+# queue: blocked/error → needs-you → done → working → idle). Priority floats
+# whatever needs you to the top, which is the point with several agents running.
+# NOTE: the companion `agent_panel_scope` key no longer exists (gone as of
+# 0.8.0) — scope is now a sidebar toggle only, so do not re-add it.
+agent_panel_sort = "priority"
+
+[ui.toast]
+# off | herdr (in-app) | terminal (outer terminal, survives SSH) | system (OS).
+# system = real macOS notifications when an agent finishes or needs you, which
+# is the whole point when herdr is not the focused window. On macOS herdr tries
+# terminal-notifier (in ../Brewfile — it can also raise the terminal on click)
+# and falls back to osascript, which shows up as "Script Editor".
+delivery = "system"
 
 [experimental]
 switch_ascii_input_source_in_prefix = false

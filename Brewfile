@@ -100,6 +100,8 @@ brew "imagemagick"
 brew "pandoc"
 brew "chafa"           # Image viewer for terminal
 brew "posting"         # API testing TUI
+brew "terminal-notifier" # macOS notifications for herdr toasts (`[ui.toast] delivery = "system"`);
+                         # without it herdr falls back to osascript, which cannot raise the terminal
 
 # =============================================================================
 # Database

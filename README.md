@@ -159,9 +159,9 @@ will never install.
 - **`.gitconfig`** is **not** symlinked — `user.name` / `user.email` stay per-machine.
 
 ### Herdr
-- **Theme** - Vesper theme
-- **Toast delivery** - System notifications
-- **Safe prefix bindings** - Tab navigation and rename use the Herdr prefix to avoid intercepting normal typing
+- **Theme** - Vesper base, overridden by the Yugen True palette in `[theme.custom]` (see `herdr/themes/`)
+- **Toast delivery** - System notifications (macOS Notification Center, via `terminal-notifier`)
+- **Keys** - Agent jumps and workspace/tab management sit behind the `Ctrl-a` prefix so they never intercept typing. The two deliberate exceptions are direct chords: `Ctrl+h/j/k/l` (nav-plus) and `Ctrl+n` / `Ctrl+p` for tab cycling — the latter shadows `<C-n>`/`<C-p>` completion and shell history inside panes, which `herdr/config.toml` documents at the binding.
 - **Managed symlinks** - `config.toml` and the workspace-manager plugin config (`plugins/workspace-manager/config.yml` → `~/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml`) are symlinked; logs, sockets, and session state stay local. Themes in `herdr/themes/` are a reference library (palettes are pasted into `config.toml`), not symlinked.
 - **Plugins** - `install.sh` installs every plugin the keybindings in `herdr/config.toml` address (`HERDR_PLUGINS` in `install.sh`); a binding whose plugin is missing resolves to `plugin_not_found` and the key silently does nothing. Verify with `herdr plugin list`. They need **Node.js** on `PATH`. A plugin you have linked locally (`herdr plugin link`, for plugin development) is left untouched.
 
