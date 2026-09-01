@@ -68,17 +68,28 @@ Since configs are symlinked, any changes you make to `~/.zshrc` or `~/.config/nv
 
 ### Key repeat needs a reboot
 
-`configure_macos` sets key repeat below what System Settings offers — `KeyRepeat 1`
-(15ms between repeats, GUI floor is 2/30ms) and `InitialKeyRepeat 10` (150ms before
-the first repeat, GUI floor is 15/225ms) — plus `ApplePressAndHoldEnabled false`,
+`configure_macos` sets key repeat below what System Settings offers. Both values are
+counts of 1/60s ticks: `KeyRepeat 1` (16.7ms between repeats, GUI floor is 2/33ms)
+and `InitialKeyRepeat 10` (167ms before the first repeat, GUI floor is 15/250ms).
+1 and 10 are the floors — `0` is not faster, it is ignored. Plus
+`ApplePressAndHoldEnabled false`,
 which is the gate: with press-and-hold on, a held key opens the diacritic popover
 instead of repeating and the two values look like they did nothing.
 
 **None of it applies to the session that ran the installer.** HIToolbox reads these
 once per app at launch, so every app already running — including the terminal you
 bootstrapped from — keeps the old rate until you reboot (a logout usually does it).
-To confirm which side of the line an app is on, its launch time must be *later*
-than the last write to the global prefs:
+To confirm the writes resolved, read the mirror the system keeps of the *effective*
+values — this is the resolved state, not the raw preference:
+
+```bash
+defaults read com.apple.Accessibility | grep KeyRepeat
+# KeyRepeatInterval = "0.016666666";  <- KeyRepeat 1, the floor
+# KeyRepeatDelay    = "0.166666666";  <- InitialKeyRepeat 10, the floor
+```
+
+That says nothing about a given running app. For that, its launch time must be
+*later* than the last write to the global prefs:
 
 ```bash
 ps -Ao lstart,comm | grep '[g]hostty'

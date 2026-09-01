@@ -436,11 +436,12 @@ configure_herdr_integrations() {
 configure_macos() {
     info "Configuring macOS settings..."
 
-    # Faster key repeat. Both are counts of ~15ms ticks, and both go below what
-    # System Settings > Keyboard offers (its fastest is KeyRepeat 2 / 30ms and
-    # InitialKeyRepeat 15 / 225ms):
-    #   KeyRepeat 1         -> 15ms between repeats
-    #   InitialKeyRepeat 10 -> 150ms before the first repeat
+    # Faster key repeat. Both are counts of 1/60s ticks, and both go below what
+    # System Settings > Keyboard offers (its fastest is KeyRepeat 2 / 33ms and
+    # InitialKeyRepeat 15 / 250ms):
+    #   KeyRepeat 1         -> 16.7ms between repeats
+    #   InitialKeyRepeat 10 -> 167ms before the first repeat
+    # These are the floors, not arbitrary lows: 0 is ignored, not faster.
     run defaults write NSGlobalDomain KeyRepeat -int 1
     run defaults write NSGlobalDomain InitialKeyRepeat -int 10
 
