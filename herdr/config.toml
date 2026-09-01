@@ -146,4 +146,4 @@ pane_history = true
 kitty_graphics = true
 
 [update]
-channel = "preview"
+channel = "stable"
