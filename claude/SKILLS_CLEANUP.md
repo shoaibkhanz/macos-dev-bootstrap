@@ -188,3 +188,24 @@ dangling `writing-great-skills` link; linked the four new skills; converted the
 three `plannotator-*` entries from stale real directories (predating the
 `agents/openai.yaml` addition) into repo symlinks. Non-repo skills in that
 directory — `learned`, `plaud-*` — were left untouched.
+
+# Plugin skills left unvendored — 2026-09-01
+
+Twenty plugin-installed skills had appeared in `claude/agents/skills/` as
+untracked directories: `build-review-interface`,
+`building-pydantic-ai-agents`, `design-taste-frontend`,
+`engineering-skills`, `error-discovery`, `eval-audit`, `evaluate-rag`,
+`fastapi-python`, `fastapi-templates`, `frontend-design`,
+`generate-synthetic-data`, `logfire-instrumentation`, `logfire-query`,
+`logfire-ui`, `microservices-patterns`, `pydantic`, `pydantic-ai-harness`,
+`start`, `validate-evaluator`, `write-judge-prompt`.
+
+They are now listed in `.gitignore` rather than committed. The 2026-07-04 pass
+deleted this same category by hand (`pydantic-ai-development`,
+`terraform-skill`, `deep-learning`, `supabase-postgres-best-practices`), and
+vendoring them would have to be redone every time it recurs. `/plugin install`
+is their source of truth; a vendored copy only goes stale against it.
+
+This costs nothing at install time: `link_claude_configs` globs
+`claude/agents/skills/*/`, so a machine that has them still gets the symlinks,
+and a machine that does not is unaffected.

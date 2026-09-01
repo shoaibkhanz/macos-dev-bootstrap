@@ -31,3 +31,29 @@ nvim/lazy-lock.json
 
 # Machine-local skill symlink (absolute path, not portable)
 claude/agents/skills/code-hyperlearning
+
+# Plugin-installed skills. Claude plugins drop these into the vendored tree,
+# which is curated to two upstreams (claude/SKILLS_CLEANUP.md), so they are
+# deliberately not committed: `/plugin install` is their source of truth and a
+# vendored copy would go stale against it. install.sh globs this directory, so
+# they are still symlinked into ~/.claude/skills on the machine that has them.
+claude/agents/skills/build-review-interface/
+claude/agents/skills/building-pydantic-ai-agents/
+claude/agents/skills/design-taste-frontend/
+claude/agents/skills/engineering-skills/
+claude/agents/skills/error-discovery/
+claude/agents/skills/eval-audit/
+claude/agents/skills/evaluate-rag/
+claude/agents/skills/fastapi-python/
+claude/agents/skills/fastapi-templates/
+claude/agents/skills/frontend-design/
+claude/agents/skills/generate-synthetic-data/
+claude/agents/skills/logfire-instrumentation/
+claude/agents/skills/logfire-query/
+claude/agents/skills/logfire-ui/
+claude/agents/skills/microservices-patterns/
+claude/agents/skills/pydantic/
+claude/agents/skills/pydantic-ai-harness/
+claude/agents/skills/start/
+claude/agents/skills/validate-evaluator/
+claude/agents/skills/write-judge-prompt/
