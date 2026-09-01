@@ -2,7 +2,7 @@
 # Dark theme optimized for OpenCode
 
 # Font Configuration
-font-family = GeistMono Nerd Font Mono
+font-family = JetBrainsMono Nerd Font Mono
 font-size = 18
 font-style-bold = Bold
 adjust-cell-height = 15%

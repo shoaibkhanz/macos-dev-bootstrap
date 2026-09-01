@@ -155,5 +155,6 @@ brew "sst/tap/opencode" # AI coding assistant TUI
 # Fonts
 # =============================================================================
 cask "font-hack-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
 cask "font-monaspice-nerd-font"
 cask "font-symbols-only-nerd-font"
