@@ -43,8 +43,7 @@ the parts.
 
 Say a system has two legs joined by a confirmation: a person authoring at human
 pace, then a machine building and judging in minutes. Give that shape first and
-every module has a place to sit. Give the modules first and they are nothing but
-files.
+every module has a place to sit. Give the modules first and they are just files.
 
 ### Keep examples short, and carry one through
 
@@ -62,9 +61,9 @@ The reader pays the setup cost once and spends the rest on the actual point.
 
 ### Build in steps, and say where the reader is
 
-Each step should be small, and should work on its own. Prefer tracer bullets: a
-plan of fourteen slices where every slice runs the whole path end to end, so
-each one can be demonstrated rather than only assembled.
+Each step should be small, and should work on its own. Prefer tracer bullets:
+every slice runs the whole path end to end, so each one can be demonstrated
+rather than only assembled.
 
 At each step, say what is now possible that was not possible before, and what
 comes next. A reader who knows where they are standing will follow a long
@@ -73,7 +72,7 @@ explanation. A reader who does not will leave a short one.
 ### Meet the objection, and the next question
 
 Say the tempting wrong thing out loud, then say why it loses. Leaving it unsaid
-does not stop the reader thinking it; it only means they think it alone.
+does not stop the reader thinking it; it just means they think it alone.
 
 A module docstring for a semantic checker does this well. It records that the
 checks were once regexes plus a window scanned backwards for negations, and it
@@ -161,7 +160,8 @@ something that exists.
 
 One of those is mechanical and the rest are not. The em dash rule has no
 exceptions, so search for the character and expect zero hits. The cut-on-sight
-list bans senses rather than spellings, so a hit there is a candidate and not
-yet a verdict: "they are nothing but files" keeps the restrictive sense "just"
-was carrying, while "just run the migration" is the throat-clearing the list
-exists to kill. Judge each hit, then cut or keep it deliberately.
+list sits under the rule above it, keep every clause that carries weight, so a
+hit there is a candidate and not yet a verdict. "It just means they think it
+alone" keeps a restrictive "merely" the sentence needs; "just run the migration"
+is the throat-clearing the list exists to kill. Weigh each hit against the work
+it does, then cut or keep it deliberately.
