@@ -2,11 +2,11 @@
 
 **Status**: ✅ Fully Configured and Ready to Use  
 **Language**: British English  
-**Vault Path**: `~/code/obsidian/rememberme/`
+**Vault Path**: `$OBSIDIAN_VAULT` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
 
 ## Overview
 
-This system provides a focused Obsidian vault assistant with four essential skills for your daily workflow as an ML engineer. All content is generated in British English.
+This system provides a focused Obsidian vault assistant with four essential skills covering daily notes, task review, research notes and blog drafts. All content is generated in British English.
 
 ## Quick Start
 
@@ -280,7 +280,7 @@ To add more skills in future:
 
 - **Created**: 31 December 2025
 - **System**: OpenCode with Obsidian Agent
-- **Vault**: ~/code/obsidian/rememberme/
+- **Vault**: `$OBSIDIAN_VAULT`
 - **Skills**: 4 (today-note, task-review, research-note, blog-draft)
 - **Language**: British English
 

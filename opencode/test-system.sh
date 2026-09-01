@@ -5,6 +5,9 @@
 
 set -e
 
+# Obsidian vault location: override by exporting OBSIDIAN_VAULT
+VAULT="${OBSIDIAN_VAULT:-$HOME/notes}"
+
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -66,19 +69,19 @@ fi
 
 # Test 5: Check vault exists
 echo -e "${YELLOW}[5/7]${NC} Checking Obsidian vault..."
-if [ -d ~/code/obsidian/rememberme ]; then
-    NOTE_COUNT=$(find ~/code/obsidian/rememberme -name "*.md" -type f | wc -l | tr -d ' ')
-    echo -e "${GREEN}✓${NC} Vault exists: ~/code/obsidian/rememberme"
+if [ -d "$VAULT" ]; then
+    NOTE_COUNT=$(find "$VAULT" -name "*.md" -type f | wc -l | tr -d ' ')
+    echo -e "${GREEN}✓${NC} Vault exists: $VAULT"
     echo -e "${GREEN}  ✓${NC} Found ${NOTE_COUNT} markdown files"
 else
-    echo -e "${RED}✗${NC} Vault not found at ~/code/obsidian/rememberme"
+    echo -e "${RED}✗${NC} Vault not found at $VAULT"
     exit 1
 fi
 
 # Test 6: Check DailyNotes folder
 echo -e "${YELLOW}[6/7]${NC} Checking DailyNotes folder..."
-if [ -d ~/code/obsidian/rememberme/DailyNotes ]; then
-    DAILY_COUNT=$(ls ~/code/obsidian/rememberme/DailyNotes/*.md 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "$VAULT/DailyNotes" ]; then
+    DAILY_COUNT=$(ls "$VAULT"/DailyNotes/*.md 2>/dev/null | wc -l | tr -d ' ')
     echo -e "${GREEN}✓${NC} DailyNotes folder exists"
     echo -e "${GREEN}  ✓${NC} Found ${DAILY_COUNT} daily notes"
 else
@@ -88,7 +91,7 @@ fi
 
 # Test 7: Check template
 echo -e "${YELLOW}[7/7]${NC} Checking templates..."
-if [ -f ~/code/obsidian/rememberme/Templates/DailyNoteTemplate.md ]; then
+if [ -f "$VAULT/Templates/DailyNoteTemplate.md" ]; then
     echo -e "${GREEN}✓${NC} Daily note template exists"
 else
     echo -e "${YELLOW}⚠${NC}  Daily note template not found (optional)"
@@ -103,7 +106,7 @@ echo ""
 echo -e "${GREEN}Your Obsidian Agent System is ready to use!${NC}"
 echo ""
 echo -e "${CYAN}Next steps:${NC}"
-echo "1. cd ~/code/obsidian"
+echo "1. cd $VAULT"
 echo "2. opencode"
 echo "3. Press Tab to switch to 'obsidian' agent"
 echo "4. Try: \"Add to today: Testing the new system!\""

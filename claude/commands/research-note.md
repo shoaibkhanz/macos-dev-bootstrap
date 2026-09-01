@@ -5,7 +5,7 @@ description: Create structured research notes for ML papers, articles, and techn
 
 ## What I do
 
-1. Create research note in `~/code/projects/obsidian/rememberme/Atlas/Papers/` folder
+1. Create research note in `$OBSIDIAN_VAULT/Atlas/Papers/` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
 2. Use structured format for: summary, key insights, methodology, results, questions
 3. Add relevant tags (research, ML, papers, transformers, RAG, etc.)
 4. Link to related notes in the vault using `[[wiki-links]]`

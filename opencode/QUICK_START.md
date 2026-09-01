@@ -9,7 +9,7 @@
 
 **Option A: Start new session**
 ```bash
-cd ~/code/obsidian
+cd "${OBSIDIAN_VAULT:-$HOME/notes}"
 opencode
 ```
 
@@ -37,7 +37,7 @@ Expected result:
 ✓ Maintains existing content
 ```
 
-**Verify**: Open `~/code/obsidian/rememberme/DailyNotes/2025-12-31.md` and check the entry was added
+**Verify**: Open `$OBSIDIAN_VAULT/DailyNotes/2025-12-31.md` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`) and check the entry was added
 
 ---
 
@@ -67,7 +67,7 @@ Expected result:
 ✓ Adds relevant tags [research, ML, MoE]
 ```
 
-**Verify**: Check `~/code/obsidian/rememberme/Pages/` for the new note
+**Verify**: Check `$OBSIDIAN_VAULT/Pages/` for the new note
 
 ---
 
@@ -83,7 +83,7 @@ Expected result:
 ✓ Status: draft
 ```
 
-**Verify**: Check `~/code/obsidian/rememberme/Tweets/` for the draft
+**Verify**: Check `$OBSIDIAN_VAULT/Tweets/` for the draft
 
 ---
 
@@ -285,7 +285,7 @@ After one week, you should:
 ## 🚦 Your Action Plan Right Now
 
 **Next 30 minutes**:
-1. ✅ Launch OpenCode in `~/code/obsidian`
+1. ✅ Launch OpenCode in `$OBSIDIAN_VAULT`
 2. ✅ Switch to `obsidian` agent (Tab key)
 3. ✅ Run all 4 test commands above
 4. ✅ Verify each skill works correctly
@@ -305,7 +305,7 @@ After one week, you should:
 
 ---
 
-**Ready?** Open your terminal and start with: `cd ~/code/obsidian && opencode`
+**Ready?** Open your terminal and start with: `cd "${OBSIDIAN_VAULT:-$HOME/notes}" && opencode`
 
 Then type: "Add to today: Started using my new Obsidian agent system! 🚀"
 

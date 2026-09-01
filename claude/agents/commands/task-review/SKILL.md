@@ -5,7 +5,7 @@ description: Review incomplete tasks from daily notes over the past week and opt
 
 ## What I do
 
-1. Scan `~/code/projects/obsidian/rememberme/Calendar/Daily/` for the past 7 days
+1. Scan `$OBSIDIAN_VAULT/Calendar/Daily/` for the past 7 days
 2. Extract all incomplete tasks (lines with `- [ ]`)
 3. Group tasks by source date
 4. Display summary with `[[wiki-links]]` to source notes
@@ -79,9 +79,10 @@ Calculate the past 7 days from today:
 
 ## File Paths
 
-- Daily notes location: `~/code/projects/obsidian/rememberme/Calendar/Daily/`
+- Vault root: `$OBSIDIAN_VAULT` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
+- Daily notes location: `$OBSIDIAN_VAULT/Calendar/Daily/`
 - Filename format: `YYYY-MM-DD.md`
-- Full path example: `~/code/projects/obsidian/rememberme/Calendar/Daily/2025-12-31.md`
+- Full path example: `$OBSIDIAN_VAULT/Calendar/Daily/2025-12-31.md`
 
 ## British English
 

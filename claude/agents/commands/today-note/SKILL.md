@@ -10,7 +10,7 @@ description: Open today's daily note and add timestamped entries in British Engl
 ### Step 1: Locate Today's Note
 
 1. Calculate today's date in `YYYY-MM-DD` format
-2. Read the note at `~/code/projects/obsidian/rememberme/Calendar/Daily/YYYY-MM-DD.md`
+2. Read the note at `$OBSIDIAN_VAULT/Calendar/Daily/YYYY-MM-DD.md` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
 3. If it doesn't exist, inform the user (daily notes are auto-created by Obsidian)
 
 ### Step 2: Populate Quick Learn (If Present)

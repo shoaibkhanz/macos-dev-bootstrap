@@ -5,7 +5,7 @@ Quick reference for daily use. Keep this handy! 🇬🇧
 ## 🚀 Launch
 
 ```bash
-cd ~/code/obsidian
+cd "${OBSIDIAN_VAULT:-$HOME/notes}"
 opencode
 # Press Tab → switch to 'obsidian' agent
 ```
@@ -48,7 +48,7 @@ opencode
 
 ---
 
-## 📂 Output Locations
+## 📂 Expected Output Locations
 
 | Skill | Folder | Filename |
 |-------|--------|----------|
@@ -80,7 +80,7 @@ opencode
 
 **Agent**: Your Obsidian assistant (switch with Tab)  
 **Skill**: Specialised workflow (loads automatically)  
-**Vault**: `~/code/obsidian/rememberme/`  
+**Vault**: `$OBSIDIAN_VAULT` (defaults to `~/notes`)  
 **British English**: All content uses proper UK spelling  
 **Links**: `[[Note Title]]` format  
 **Tasks**: `- [ ]` incomplete, `- [x]` complete  
@@ -176,7 +176,7 @@ Friday: "Review my tasks" → plan next week
 ## ✅ First Session Checklist
 
 - [ ] Run test script: `~/.config/opencode/test-system.sh`
-- [ ] Launch OpenCode: `cd ~/code/obsidian && opencode`
+- [ ] Launch OpenCode: `cd "${OBSIDIAN_VAULT:-$HOME/notes}" && opencode`
 - [ ] Switch to obsidian agent (Tab key)
 - [ ] Test: "Add to today: Testing new system"
 - [ ] Test: "Review my tasks"

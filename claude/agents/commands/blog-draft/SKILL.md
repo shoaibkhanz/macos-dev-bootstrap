@@ -1,11 +1,11 @@
 ---
 name: blog-draft
-description: Create technical blog post drafts with proper structure, SEO, and British English for ML engineering topics
+description: Create technical blog post drafts with proper structure, SEO, and British English
 ---
 
 ## What I do
 
-1. Create blog draft in `~/code/projects/obsidian/rememberme/Efforts/Writing/` folder
+1. Create blog draft in `$OBSIDIAN_VAULT/Efforts/Writing/` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
 2. Structure with: introduction, main sections, conclusion
 3. Use British English spelling and phrasing throughout
 4. Add SEO-friendly frontmatter with metadata
@@ -118,7 +118,7 @@ All blog content must use British English:
 
 **Tone**:
 - Professional yet approachable
-- Clear and accessible for ML engineers
+- Clear and accessible for a technical audience
 - Authoritative without being pompous
 - Encourage learning and experimentation
 

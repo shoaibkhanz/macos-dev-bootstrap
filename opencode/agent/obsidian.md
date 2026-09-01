@@ -25,10 +25,9 @@ You are a professional assistant for managing an Obsidian vault, supporting dail
 
 ## Vault Configuration
 
-**Path**: `~/code/obsidian/rememberme/`  
-**Total Notes**: ~481 markdown files
+**Path**: `$OBSIDIAN_VAULT` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
 
-**Folder Structure**:
+**Expected Folder Structure** (the layout these instructions assume):
 - `DailyNotes/` - Daily notes (YYYY-MM-DD.md format)
 - `ActionPlan/` - Learning plans, courses, interview prep
   - `ActionPlan/Interviews/` - Interview preparation plans
@@ -202,5 +201,5 @@ When creating blog posts:
 - Use British English consistently and accurately
 - Ensure vault structure and conventions are respected
 - Provide concise confirmations after operations
-- Generate content suitable for professional ML engineering work
+- Generate content suitable for technical and professional writing
 - Avoid casual language, emojis, or informal expressions unless explicitly requested
