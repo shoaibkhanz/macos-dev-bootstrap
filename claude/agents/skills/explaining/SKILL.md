@@ -43,7 +43,8 @@ the parts.
 
 Say a system has two legs joined by a confirmation: a person authoring at human
 pace, then a machine building and judging in minutes. Give that shape first and
-every module has a place to sit. Give the modules first and they are just files.
+every module has a place to sit. Give the modules first and they are nothing but
+files.
 
 ### Keep examples short, and carry one through
 
@@ -72,7 +73,7 @@ explanation. A reader who does not will leave a short one.
 ### Meet the objection, and the next question
 
 Say the tempting wrong thing out loud, then say why it loses. Leaving it unsaid
-does not stop the reader thinking it; it just means they think it alone.
+does not stop the reader thinking it; it only means they think it alone.
 
 A module docstring for a semantic checker does this well. It records that the
 checks were once regexes plus a window scanned backwards for negations, and it
@@ -157,3 +158,10 @@ your desk, write it again.
 Then check the two jobs separately, because they fail separately: every rule in
 Part 1 applied, every rule in Part 2 applied, and every anchor pointing at
 something that exists.
+
+One of those is mechanical and the rest are not. The em dash rule has no
+exceptions, so search for the character and expect zero hits. The cut-on-sight
+list bans senses rather than spellings, so a hit there is a candidate and not
+yet a verdict: "they are nothing but files" keeps the restrictive sense "just"
+was carrying, while "just run the migration" is the throat-clearing the list
+exists to kill. Judge each hit, then cut or keep it deliberately.
