@@ -74,13 +74,13 @@ Carry forward to today? (y/n)
 - "Summarise the LoRA paper"
 
 **What it does**:
-- Creates structured note in `Atlas/Topics/` folder
+- Creates structured note in `Atlas/Papers/` folder
 - Includes: Summary, Key Insights, Methodology, Results, Questions, References
 - Adds relevant tags (research, ML, papers, etc.)
 - Links to related notes in vault
 - Uses British English throughout
 
-**Location**: `Atlas/Topics/{Topic or Paper Title}.md`
+**Location**: `Atlas/Papers/{Topic or Paper Title}.md`
 
 **Template sections**:
 - Summary (2-3 sentence overview)
@@ -223,7 +223,7 @@ Agent: ✓ Added 8 tasks to today's note under "Tasks from Previous Days"
 ### Research Note
 ```
 You: "Create research note for the LoRA paper"
-Agent: ✓ Created Atlas/Topics/LoRA Low-Rank Adaptation.md
+Agent: ✓ Created Atlas/Papers/LoRA Low-Rank Adaptation.md
        Added sections: Summary, Key Insights, Methodology, Results
        Linked to [[Learning LLMs]] and [[PEFT]]
 ```

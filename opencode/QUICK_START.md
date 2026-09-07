@@ -61,13 +61,13 @@ Expected result:
 You: "Create research note on Mixture of Experts (MoE) architecture"
 
 Expected result:
-✓ Creates Atlas/Topics/Mixture of Experts.md
+✓ Creates Atlas/Papers/Mixture of Experts.md
 ✓ Uses structured template (Summary, Key Insights, etc.)
 ✓ British English spelling throughout
 ✓ Adds relevant tags [research, ML, MoE]
 ```
 
-**Verify**: Check `$OBSIDIAN_VAULT/Atlas/Topics/` for the new note
+**Verify**: Check `$OBSIDIAN_VAULT/Atlas/Papers/` for the new note
 
 ---
 
@@ -111,7 +111,7 @@ Quick captures:
 ```
 When reading papers:
 - "Create research note for [Paper Title]"
-- Agent creates structured note in Atlas/Topics/
+- Agent creates structured note in Atlas/Papers/
 - You fill in details whilst reading
 ```
 
@@ -142,7 +142,7 @@ Agent: ✓ Added at 09:15
 
 [After reading paper]
 You: "Create research note on LoRA"
-Agent: ✓ Created Atlas/Topics/LoRA Low-Rank Adaptation.md
+Agent: ✓ Created Atlas/Papers/LoRA Low-Rank Adaptation.md
 
 [Later]
 You: "Write blog explaining LoRA for beginners"
@@ -167,13 +167,13 @@ Agent: Found 3 incomplete tasks this week...
 ### Example 3: Research Workflow
 ```
 You: "Create research note for 'Retrieval-Augmented Generation' paper"
-Agent: ✓ Created Atlas/Topics/Retrieval-Augmented Generation.md
+Agent: ✓ Created Atlas/Papers/Retrieval-Augmented Generation.md
 
 You: "Add to today: Key insight from RAG paper - separating parametric from non-parametric knowledge"
 Agent: ✓ Added at 14:30
 
 You: "Create research note on vector databases for RAG"
-Agent: ✓ Created Atlas/Topics/Vector Databases for RAG.md
+Agent: ✓ Created Atlas/Papers/Vector Databases for RAG.md
 [Auto-links to RAG note]
 ```
 

@@ -509,6 +509,26 @@ backup_existing() {
             "$HOME/.agents/hooks"
             "$HOME/.agents/commands"
         )
+        # link_opencode_configs rm -rf's these, so they belong in the same
+        # transaction as everything else --claude overwrites. Listed per path
+        # rather than as ~/.config/opencode, because cp -r on the directory
+        # would drag node_modules and the plugin runtime into every backup.
+        local oc="$HOME/.config/opencode"
+        files_to_backup+=(
+            "$oc/agent/obsidian.md"
+            "$oc/agent/ml-agent.md"
+            "$oc/prompts/obsidian-context.txt"
+            "$oc/test-system.sh"
+            "$oc/CHEAT_SHEET.md"
+            "$oc/FIRST_COMMANDS.txt"
+            "$oc/OBSIDIAN_AGENT_README.md"
+            "$oc/PERMISSIONS_NOTE.md"
+            "$oc/QUICK_START.md"
+            "$oc/skill/today-note"
+            "$oc/skill/task-review"
+            "$oc/skill/research-note"
+            "$oc/skill/blog-draft"
+        )
     fi
 
     local backup_needed=false

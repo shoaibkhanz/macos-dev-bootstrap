@@ -54,7 +54,7 @@ opencode
 |-------|--------|----------|
 | today-note | `Calendar/Daily/` | `YYYY-MM-DD.md` |
 | task-review | (reads only) | Scans `Calendar/Daily/` |
-| research-note | `Atlas/Topics/` | `{Topic}.md` |
+| research-note | `Atlas/Papers/` | `{Topic}.md` |
 | blog-draft | `Efforts/Writing/` | `{Title}.md` |
 
 ---

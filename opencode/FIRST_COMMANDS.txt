@@ -28,7 +28,7 @@ Expected: Shows incomplete tasks from past 7 days, grouped by date
 
 Create research note on Mixture of Experts architecture in LLMs
 
-Expected: Creates Atlas/Topics/Mixture of Experts.md with full structure
+Expected: Creates Atlas/Papers/Mixture of Experts.md with full structure
 
 
 ───────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ After running all 4 commands:
 □ Open Obsidian
 □ Check Calendar/Daily/2025-12-31.md has new timestamped entry
 □ Verify task review showed tasks from past week
-□ Confirm Atlas/Topics/Mixture of Experts.md was created
+□ Confirm Atlas/Papers/Mixture of Experts.md was created
 □ Confirm Efforts/Writing/Optimising LLM Inference.md was created
 □ All content uses British English spelling
 □ All notes have proper YAML frontmatter

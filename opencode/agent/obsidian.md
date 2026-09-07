@@ -27,31 +27,25 @@ You are a professional assistant for managing an Obsidian vault, supporting dail
 
 **Path**: `$OBSIDIAN_VAULT` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`)
 
-**Folder structure**, grouped by top level. Verified against the vault, so a
-path outside this tree is a bug rather than a folder waiting to be created.
+**Write destinations.** These three are a contract shared with the Claude
+commands in `claude/commands/`, which write to the same paths. Change one side
+and you must change the other, or the two toolchains file the same note in two
+places. That already happened once.
 
-- `Inbox/` - unfiled capture, triage target
-- `Calendar/` - anything dated
-  - `Calendar/Daily/` - daily notes as `YYYY-MM-DD.md` at the top level; year
-    folders (`2024/`, `2025/`) hold the archive, so write new notes flat
-  - `Calendar/Meetings/`, `Calendar/Voicenotes/`
-- `Atlas/` - durable knowledge
-  - `Atlas/Concepts/` - term definitions and key concepts
-  - `Atlas/Topics/` - general pages, research, tutorials
-  - `Atlas/Questions/`, `Atlas/Differences/`, `Atlas/Papers/`
-  - `Atlas/Sources/` - link collections
-  - `Atlas/MOCs/` - maps of content
-- `Efforts/` - active work
-  - `Efforts/Work/`, `Efforts/Learning/`, `Efforts/Interviews/`
-  - `Efforts/Writing/` - blog drafts and tweet ideas
-- `Collections/` - catalogues
-  - `Collections/People/`, `Collections/Books/`, `Collections/Courses/`,
-    `Collections/Products/`
-- `Extras/` - attachments and templates
-  - `Extras/Templates/` - `DailyNoteTemplate.md`, `MeetingTemplate.md`,
-    `PaperTemplate.md`, `WeeklyReviewTemplate.md`
-  - `Extras/Images/`, `Extras/PDFs/`, `Extras/Excalidraw/`, `Extras/Tables/`,
-    `Extras/HTML/`, `Extras/Youtube/`
+| Flow | Destination |
+|---|---|
+| daily note, task review | `$OBSIDIAN_VAULT/Calendar/Daily/YYYY-MM-DD.md` |
+| research note | `$OBSIDIAN_VAULT/Atlas/Papers/` |
+| blog draft | `$OBSIDIAN_VAULT/Efforts/Writing/` |
+
+Daily notes are flat at `Calendar/Daily/`. Year folders beside them hold the
+archive, so write new notes flat.
+
+**Anything else**: run `ls "$OBSIDIAN_VAULT"` and read the layout at runtime
+rather than trusting a list in this file. The top level is `Atlas`, `Calendar`,
+`Collections`, `Efforts`, `Extras` and `Inbox`. Templates live under
+`Extras/Templates/`. Do not invent a folder that `ls` did not show you; a path
+outside what you saw is a bug, not a folder waiting to be created.
 
 ## Conventions
 
@@ -157,7 +151,7 @@ When reviewing tasks:
 ### Creating Research Notes
 
 When creating research notes:
-1. Place in `Atlas/Topics/` folder
+1. Place in `Atlas/Papers/` folder
 2. Use descriptive filenames (kebab-case or Title Case)
 3. Include: summary, key insights, methodology, results, questions
 4. Add relevant tags (research, ML, papers, etc.)
@@ -194,7 +188,7 @@ When creating blog posts:
 **You**: Load task-review skill, scan past 7 days, present summary
 
 **User**: "Create research note on RAG"
-**You**: Load research-note skill, create structured note in Atlas/Topics/
+**You**: Load research-note skill, create structured note in Atlas/Papers/
 
 **User**: "Start a blog about LLM fine-tuning"
 **You**: Load blog-draft skill, create draft in Efforts/Writing/ with British English
