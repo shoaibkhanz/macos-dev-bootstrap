@@ -1,6 +1,6 @@
 ---
 name: explaining
-description: Structure and prose standards for explaining something to a person. Use when writing a doc, an ADR, a ticket, a docstring, a commit body, a code review, or an answer in chat.
+description: Structure and prose standards for explaining something to a person. Use when writing a doc, an ADR, a ticket, a docstring, a commit body, a code review, or an answer in chat. For walking a person through how a mechanism works in conversation, use clear-explanations instead.
 ---
 
 # How to explain

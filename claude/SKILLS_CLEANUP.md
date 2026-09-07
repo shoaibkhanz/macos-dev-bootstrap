@@ -236,3 +236,40 @@ needs one to bind it.
 
 No `agents/openai.yaml`: local skills here carry none, and only the vendored
 Matt Pocock set has one because upstream ships it.
+
+# Local skill added: `clear-explanations` — 2026-09-07
+
+Fourth local skill. A narrative shape for walking a person through how a
+mechanism works in conversation, as opposed to writing something that has to
+stand alone.
+
+Split out from `explaining` rather than merged into it, because the two collide
+on the opening sentence. `explaining` says the first sentence answers the
+question. This one says open with the problem and restate the point at the end.
+Both are right for their own case: a yes-or-no question wants the answer first,
+and a request to understand a mechanism wants the motivation first. Merging them
+would have produced a skill that contradicts itself in its first rule, so the
+boundary is written into both descriptions instead, and the direct-question case
+stays inside this skill as an override rather than a handoff.
+
+Prose standards are not repeated here. Every rule sampled from the source text
+against `explaining` was already present in it: problem before solution, build
+in steps, anchor a claim, lead with the answer, concrete before general, tables
+carry verdicts, no em dashes, read it aloud. Duplicating those would have given
+two cut-on-sight lists free to drift apart, but they are repeated inline anyway. A chat
+walkthrough matches this skill alone, so a pointer to `explaining` would leave
+the em-dash ban and the cut-on-sight list unloaded exactly when they apply.
+
+What is its own, and what the source text adds: the fixed section skeleton, the
+ban on `Layer 1` and `Part A` headers, grounding a comparison in what the reader
+already owns rather than in assumed vocabulary, sourcing every branch condition
+to a named field and its producer, checking that an example exists before
+constructing one and labelling the parts that are constructed, describing every
+part of a diagram, closing on a question that can actually fail, and reading a
+library's current published docs rather than trusting the pinned source alone.
+
+The source text's `What to avoid` list was compressed, not copied. `writing-skills`
+records that for wrong-shaped output a prohibition list measurably backfires
+while a positive recipe holds, and the list mostly restated the moves in the
+negative. The recipe stayed, and only the failures the recipe cannot express in
+the positive survived as prohibitions.
