@@ -591,6 +591,37 @@ link_claude_configs() {
     done
 }
 
+# The live ~/.config/opencode tree is not ours to own: it holds node_modules,
+# bun.lock, tui.json, plugins and the plannotator commands, none of which are in
+# this repo. link_file rm -rf's its target, so a directory-level link would
+# delete all of that. Link per file instead.
+#
+# opencode.jsonc is deliberately absent. opencode migrated keybinds and the tui
+# block out of it into ~/.config/opencode/tui.json and left an
+# opencode.jsonc.tui-migration.bak beside it, so the copy in this repo is
+# pre-migration. Linking it would put deprecated keys back.
+link_opencode_configs() {
+    local oc="$HOME/.config/opencode"
+
+    link_file "$SCRIPT_DIR/opencode/agent/obsidian.md"           "$oc/agent/obsidian.md"
+    link_file "$SCRIPT_DIR/opencode/agent/ml-agent.md"           "$oc/agent/ml-agent.md"
+    link_file "$SCRIPT_DIR/opencode/prompts/obsidian-context.txt" "$oc/prompts/obsidian-context.txt"
+    link_file "$SCRIPT_DIR/opencode/test-system.sh"              "$oc/test-system.sh"
+
+    local doc
+    for doc in CHEAT_SHEET.md FIRST_COMMANDS.txt OBSIDIAN_AGENT_README.md \
+               PERMISSIONS_NOTE.md QUICK_START.md; do
+        link_file "$SCRIPT_DIR/opencode/$doc" "$oc/$doc"
+    done
+
+    # The four Obsidian skills are byte-identical to claude/agents/commands/<name>,
+    # so link them from there rather than keeping a third copy of each.
+    local skill
+    for skill in today-note task-review research-note blog-draft; do
+        link_file "$SCRIPT_DIR/claude/agents/commands/$skill" "$oc/skill/$skill"
+    done
+}
+
 create_symlinks() {
     info "Creating symlinks..."
 
@@ -608,12 +639,14 @@ create_symlinks() {
     link_herdr_configs
 
     # Claude Code / agent config: opt-in only (--claude). By default we never
-    # touch an existing ~/.claude or ~/.agents tree, so pulling this repo onto
-    # another machine won't clobber that machine's own skills/settings.
+    # touch an existing ~/.claude, ~/.agents or ~/.config/opencode tree, so
+    # pulling this repo onto another machine won't clobber that machine's own
+    # skills/settings.
     if [ "$INSTALL_CLAUDE" = true ]; then
         link_claude_configs
+        link_opencode_configs
     else
-        info "Skipping Claude/agent config (skills, settings, rules, commands). Pass --claude to install."
+        info "Skipping Claude/agent config (skills, settings, rules, commands, opencode agent). Pass --claude to install."
     fi
 }
 
