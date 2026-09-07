@@ -52,10 +52,10 @@ opencode
 
 | Skill | Folder | Filename |
 |-------|--------|----------|
-| today-note | `DailyNotes/` | `YYYY-MM-DD.md` |
-| task-review | (reads only) | Scans `DailyNotes/` |
-| research-note | `Pages/` | `{Topic}.md` |
-| blog-draft | `Tweets/` | `{Title}.md` |
+| today-note | `Calendar/Daily/` | `YYYY-MM-DD.md` |
+| task-review | (reads only) | Scans `Calendar/Daily/` |
+| research-note | `Atlas/Topics/` | `{Topic}.md` |
+| blog-draft | `Efforts/Writing/` | `{Title}.md` |
 
 ---
 

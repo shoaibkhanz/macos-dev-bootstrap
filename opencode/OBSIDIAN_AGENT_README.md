@@ -29,7 +29,7 @@ This system provides a focused Obsidian vault assistant with four essential skil
 - Adds timestamp in HH:MM format
 - Appends your note in British English
 
-**Location**: `DailyNotes/YYYY-MM-DD.md`
+**Location**: `Calendar/Daily/YYYY-MM-DD.md`
 
 ---
 
@@ -74,13 +74,13 @@ Carry forward to today? (y/n)
 - "Summarise the LoRA paper"
 
 **What it does**:
-- Creates structured note in `Pages/` folder
+- Creates structured note in `Atlas/Topics/` folder
 - Includes: Summary, Key Insights, Methodology, Results, Questions, References
 - Adds relevant tags (research, ML, papers, etc.)
 - Links to related notes in vault
 - Uses British English throughout
 
-**Location**: `Pages/{Topic or Paper Title}.md`
+**Location**: `Atlas/Topics/{Topic or Paper Title}.md`
 
 **Template sections**:
 - Summary (2-3 sentence overview)
@@ -102,14 +102,14 @@ Carry forward to today? (y/n)
 - "Start blog on RAG systems"
 
 **What it does**:
-- Creates blog draft in `Tweets/` folder
+- Creates blog draft in `Efforts/Writing/` folder
 - Structures with: Introduction, Main Sections, Conclusion
 - Adds SEO-friendly frontmatter
 - Includes relevant tags and `[[wiki-links]]`
 - Uses British English spelling and phrasing
 - Sets status as "draft"
 
-**Location**: `Tweets/{Title}.md`
+**Location**: `Efforts/Writing/{Title}.md`
 
 **Features**:
 - SEO description (under 160 characters)
@@ -223,7 +223,7 @@ Agent: ✓ Added 8 tasks to today's note under "Tasks from Previous Days"
 ### Research Note
 ```
 You: "Create research note for the LoRA paper"
-Agent: ✓ Created Pages/LoRA Low-Rank Adaptation.md
+Agent: ✓ Created Atlas/Topics/LoRA Low-Rank Adaptation.md
        Added sections: Summary, Key Insights, Methodology, Results
        Linked to [[Learning LLMs]] and [[PEFT]]
 ```
@@ -231,7 +231,7 @@ Agent: ✓ Created Pages/LoRA Low-Rank Adaptation.md
 ### Blog Writing
 ```
 You: "Write blog about RAG systems"
-Agent: ✓ Created Tweets/Building Production RAG Systems.md
+Agent: ✓ Created Efforts/Writing/Building Production RAG Systems.md
        Status: draft
        Includes: Introduction, Architecture, Implementation, Best Practices, Conclusion
        All in British English with SEO description

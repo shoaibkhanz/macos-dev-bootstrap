@@ -32,12 +32,12 @@ Try these four commands to verify everything works:
 You: "Add to today: Testing the new Obsidian agent system - works brilliantly!"
 
 Expected result: 
-✓ Agent appends timestamped note to DailyNotes/2025-12-31.md
+✓ Agent appends timestamped note to Calendar/Daily/2025-12-31.md
 ✓ Uses current time in HH:MM format
 ✓ Maintains existing content
 ```
 
-**Verify**: Open `$OBSIDIAN_VAULT/DailyNotes/2025-12-31.md` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`) and check the entry was added
+**Verify**: Open `$OBSIDIAN_VAULT/Calendar/Daily/2025-12-31.md` (set `OBSIDIAN_VAULT`, defaulting to `~/notes`) and check the entry was added
 
 ---
 
@@ -46,7 +46,7 @@ Expected result:
 You: "Review my tasks from this week"
 
 Expected result:
-✓ Scans DailyNotes/ for past 7 days
+✓ Scans Calendar/Daily/ for past 7 days
 ✓ Extracts incomplete tasks (- [ ])
 ✓ Groups by date with [[links]]
 ✓ Asks if you want to carry forward
@@ -61,13 +61,13 @@ Expected result:
 You: "Create research note on Mixture of Experts (MoE) architecture"
 
 Expected result:
-✓ Creates Pages/Mixture of Experts.md
+✓ Creates Atlas/Topics/Mixture of Experts.md
 ✓ Uses structured template (Summary, Key Insights, etc.)
 ✓ British English spelling throughout
 ✓ Adds relevant tags [research, ML, MoE]
 ```
 
-**Verify**: Check `$OBSIDIAN_VAULT/Pages/` for the new note
+**Verify**: Check `$OBSIDIAN_VAULT/Atlas/Topics/` for the new note
 
 ---
 
@@ -76,14 +76,14 @@ Expected result:
 You: "Write blog post about optimising LLM inference for production"
 
 Expected result:
-✓ Creates Tweets/{Title}.md
+✓ Creates Efforts/Writing/{Title}.md
 ✓ Structured: Introduction, Main Sections, Conclusion
 ✓ British English (optimising, analyse, whilst)
 ✓ SEO description under 160 characters
 ✓ Status: draft
 ```
 
-**Verify**: Check `$OBSIDIAN_VAULT/Tweets/` for the draft
+**Verify**: Check `$OBSIDIAN_VAULT/Efforts/Writing/` for the draft
 
 ---
 
@@ -111,7 +111,7 @@ Quick captures:
 ```
 When reading papers:
 - "Create research note for [Paper Title]"
-- Agent creates structured note in Pages/
+- Agent creates structured note in Atlas/Topics/
 - You fill in details whilst reading
 ```
 
@@ -142,11 +142,11 @@ Agent: ✓ Added at 09:15
 
 [After reading paper]
 You: "Create research note on LoRA"
-Agent: ✓ Created Pages/LoRA Low-Rank Adaptation.md
+Agent: ✓ Created Atlas/Topics/LoRA Low-Rank Adaptation.md
 
 [Later]
 You: "Write blog explaining LoRA for beginners"
-Agent: ✓ Created Tweets/Understanding LoRA Fine-tuning.md
+Agent: ✓ Created Efforts/Writing/Understanding LoRA Fine-tuning.md
 ```
 
 ### Example 2: Task Management
@@ -167,13 +167,13 @@ Agent: Found 3 incomplete tasks this week...
 ### Example 3: Research Workflow
 ```
 You: "Create research note for 'Retrieval-Augmented Generation' paper"
-Agent: ✓ Created Pages/Retrieval-Augmented Generation.md
+Agent: ✓ Created Atlas/Topics/Retrieval-Augmented Generation.md
 
 You: "Add to today: Key insight from RAG paper - separating parametric from non-parametric knowledge"
 Agent: ✓ Added at 14:30
 
 You: "Create research note on vector databases for RAG"
-Agent: ✓ Created Pages/Vector Databases for RAG.md
+Agent: ✓ Created Atlas/Topics/Vector Databases for RAG.md
 [Auto-links to RAG note]
 ```
 
@@ -238,7 +238,7 @@ Copy this to your daily note template if helpful:
 ### Issue: "Daily note doesn't exist"
 **Fix**: 
 1. Open Obsidian first to let plugin create today's note
-2. Or manually create `DailyNotes/YYYY-MM-DD.md`
+2. Or manually create `Calendar/Daily/YYYY-MM-DD.md`
 
 ### Issue: "Skill not loading"
 **Fix**: Check `~/.config/opencode/opencode.jsonc` has skill permissions

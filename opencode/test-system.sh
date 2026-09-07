@@ -54,7 +54,7 @@ SKILL_COUNT=0
 for skill in "${SKILLS[@]}"; do
     if [ -f ~/.config/opencode/skill/$skill/SKILL.md ]; then
         echo -e "${GREEN}  ✓${NC} $skill"
-        ((SKILL_COUNT++))
+        SKILL_COUNT=$((SKILL_COUNT + 1))
     else
         echo -e "${RED}  ✗${NC} $skill (missing)"
     fi
@@ -78,20 +78,20 @@ else
     exit 1
 fi
 
-# Test 6: Check DailyNotes folder
-echo -e "${YELLOW}[6/7]${NC} Checking DailyNotes folder..."
-if [ -d "$VAULT/DailyNotes" ]; then
-    DAILY_COUNT=$(ls "$VAULT"/DailyNotes/*.md 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "${GREEN}✓${NC} DailyNotes folder exists"
+# Test 6: Check Calendar/Daily folder
+echo -e "${YELLOW}[6/7]${NC} Checking Calendar/Daily folder..."
+if [ -d "$VAULT/Calendar/Daily" ]; then
+    DAILY_COUNT=$(ls "$VAULT"/Calendar/Daily/*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "${GREEN}✓${NC} Calendar/Daily folder exists"
     echo -e "${GREEN}  ✓${NC} Found ${DAILY_COUNT} daily notes"
 else
-    echo -e "${RED}✗${NC} DailyNotes folder missing"
+    echo -e "${RED}✗${NC} Calendar/Daily folder missing"
     exit 1
 fi
 
 # Test 7: Check template
 echo -e "${YELLOW}[7/7]${NC} Checking templates..."
-if [ -f "$VAULT/Templates/DailyNoteTemplate.md" ]; then
+if [ -f "$VAULT/Extras/Templates/DailyNoteTemplate.md" ]; then
     echo -e "${GREEN}✓${NC} Daily note template exists"
 else
     echo -e "${YELLOW}⚠${NC}  Daily note template not found (optional)"
