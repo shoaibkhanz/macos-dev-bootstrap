@@ -406,6 +406,14 @@ always-present `default` entry is filtered out while stopped. Start one with
    cp ~/.secrets.example ~/.secrets
    nvim ~/.secrets  # Add your API keys
    ```
+6. **Point the Obsidian commands at your vault**, if you use them. The four
+   Claude commands (`today-note`, `blog-draft`, `research-note`, `task-review`)
+   and the opencode Obsidian agent read `OBSIDIAN_VAULT` and fall back to
+   `~/notes`. Set it in `~/.secrets` to the directory holding your `.obsidian`
+   folder:
+   ```bash
+   echo 'export OBSIDIAN_VAULT="$HOME/path/to/vault"' >> ~/.secrets
+   ```
 
 Note: Zsh is set as default shell, tmux plugins are installed, and Neovim providers (Python, Ruby) are configured automatically.
 
