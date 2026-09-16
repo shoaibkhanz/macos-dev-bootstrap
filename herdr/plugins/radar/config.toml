@@ -1,0 +1,12 @@
+# herdr-radar settings. Edited by hand here, or via the settings popup
+# (prefix+, -> `s` saves and restarts the daemon). After a hand edit, run
+# `herdr plugin action invoke hhdebb.herdr-radar.state-stop` then `.state-start`.
+#
+# follow_appearance: OFF deliberately. Left on (the default) the plugin drives
+# `[theme] name` in ~/.config/herdr/config.toml whenever macOS flips light/dark,
+# and it writes that file with write-temp + rename — which REPLACES the
+# ~/code/macos-dev-bootstrap/herdr/config.toml symlink with a detached regular
+# file. It already did that once (vesper -> catppuccin, 2026-09-16 22:28).
+# `auto_switch = false` in herdr's own [theme] says we don't want theme
+# switching anyway, so this just makes the plugin agree.
+follow_appearance = false
