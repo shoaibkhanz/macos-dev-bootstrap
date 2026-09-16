@@ -135,6 +135,17 @@ link_herdr_configs() {
     # ~/.config/herdr/plugins/config/<plugin-id>/config.yml, so link it there.
     link_file "$SCRIPT_DIR/herdr/plugins/workspace-manager/config.yml" \
         "$HOME/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml"
+    # herdr-radar settings. `follow_appearance = false` lives here and is load
+    # bearing: at its default the plugin drives `[theme] name` on every desktop
+    # light/dark flip, and it writes config.toml with temp-file + rename, which
+    # REPLACES the symlink above with a detached copy (it did exactly that on
+    # 2026-09-16, silently reverting this repo to a bystander). Edit this file
+    # by hand, NOT through the plugin's prefix+, popup: the popup writes the
+    # live path the same way, so the link detaches and the next `--herdr` run
+    # discards the edit. Its `view-native` and `--rows-off` actions rewrite
+    # config.toml too — after either, re-link with `./install.sh --herdr`.
+    link_file "$SCRIPT_DIR/herdr/plugins/radar/config.toml" \
+        "$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar/config.toml"
 }
 
 # --herdr fast path: refresh only herdr config + plugins + integrations,
@@ -383,6 +394,14 @@ HERDR_PLUGINS=(
     "active-agent.jump|shoaibkhanz/herdr-active-agent-jump"
     "attention.jump|milkyskies/herdr-attention"
     "herdr-plugin-workspace-manager|razajamil/herdr-plugin-workspace-manager"
+    # Bound to prefix+f / prefix+comma. The `# >>> herdr-radar sidebar block`
+    # in herdr/config.toml is committed, so a fresh bootstrap writes nothing:
+    # its [[build]] step calls apply(), which refuses with `foreign-table`
+    # because [theme.custom] sits outside the plugin's markers, and returns
+    # before touching the file — the symlink survives. That refusal is not a
+    # nuisance, it is the guard; see the warning above [theme.custom] in
+    # herdr/config.toml before touching that block.
+    "hhdebb.herdr-radar|hhdebb/herdr-radar"
 )
 
 install_herdr_plugins() {
