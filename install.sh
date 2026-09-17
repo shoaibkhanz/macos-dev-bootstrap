@@ -336,7 +336,7 @@ run_targeted_followups() {
 # Run just the requested components, in registry order, then report exactly
 # like a full install does.
 run_only_targets() {
-    local entry name label fn configs_done=false
+    local entry name label fn configs_done=false failed_before
 
     for entry in "${INSTALL_COMPONENTS[@]}"; do
         name="${entry%%|*}"
@@ -351,9 +351,23 @@ run_only_targets() {
         if component_overwrites_config "$name"; then
             if [ "$configs_done" = false ]; then
                 configs_done=true
+
+                # `step` always returns 0, so the transaction's outcome has to
+                # be read off FAILED_STEPS. A follow-up MUST NOT run over a
+                # failed transaction: if the backup failed, the configs were
+                # never linked, and install_herdr_plugins would then let the
+                # radar plugin write its sidebar block into whatever detached
+                # config.toml is still live — the file we just failed to copy
+                # aside. The pre-split update_herdr got this for free by
+                # sharing one errexit subshell.
+                failed_before=${#FAILED_STEPS[@]}
                 step "backup + $(targeted_overwriting_components)" \
                     run_targeted_config_components
-                run_targeted_followups
+                if [ "${#FAILED_STEPS[@]}" -eq "$failed_before" ]; then
+                    run_targeted_followups
+                else
+                    warn "Skipping follow-up work: the config step above failed."
+                fi
             fi
             continue
         fi

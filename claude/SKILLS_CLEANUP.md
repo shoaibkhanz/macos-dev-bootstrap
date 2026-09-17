@@ -376,3 +376,13 @@ So the same detour cannot cost anything twice:
   would abort it and skip every component queued behind. Verified with a
   stubbed-failing `install_herdr_plugins`: on `--only herdr,skills` both config
   halves land, only the plugin step is reported failed, and the run exits 1.
+
+  The split needed a guard the shared subshell used to provide for free.
+  `step` always returns 0, so a follow-up would otherwise run over a *failed*
+  transaction: backup fails, configs are never linked, and
+  `install_herdr_plugins` then lets the radar plugin write its sidebar block
+  into whatever detached `config.toml` is still live — precisely the file the
+  backup just failed to copy aside. Follow-ups now run only if
+  `FAILED_STEPS` did not grow across the transaction. Verified with an
+  unwritable `$HOME`: `--only herdr` fails the step, skips the follow-up,
+  leaves the detached config byte-for-byte, and exits 1.
