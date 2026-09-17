@@ -392,3 +392,11 @@ So the same detour cannot cost anything twice:
   unwritable `$HOME` holding a detached `config.toml`, once per path: the
   backup step fails, the plugin step is skipped and says which dependency
   failed, the detached file is unchanged, and the run exits 1.
+
+  The baseline is tested once, before the follow-up loop, not per follow-up.
+  `FAILED_STEPS` grows when a follow-up itself fails, so comparing inside the
+  loop would have let the first failing follow-up skip its siblings — the
+  coupling the split exists to remove. Verified with a second, stubbed-failing
+  follow-up ahead of herdr's: it fails alone and herdr's still runs, while a
+  failed transaction still blocks both. Latent for now, herdr being the only
+  entry in the table, but the table is general.

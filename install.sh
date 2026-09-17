@@ -348,10 +348,21 @@ component_followup() {
     esac
 }
 
-# Each follow-up runs only if the transaction it follows succeeded, hence the
-# baseline from the caller — see step_if_clean for why that matters.
+# Follow-ups run only if the transaction they follow succeeded — see
+# step_if_clean for why that matters.
+#
+# The baseline is tested once, here, rather than per follow-up: FAILED_STEPS
+# grows when a follow-up itself fails, so comparing inside the loop would let
+# the first failing follow-up skip its siblings. That is the coupling this
+# split exists to remove. A failed transaction blocks all of them; a failed
+# follow-up blocks only itself.
 run_targeted_followups() {
     local baseline="$1" entry name followup
+
+    if [ "${#FAILED_STEPS[@]}" -ne "$baseline" ]; then
+        warn "Skipping follow-up work: the config step it depends on failed."
+        return 0
+    fi
 
     for entry in "${INSTALL_COMPONENTS[@]}"; do
         name="${entry%%|*}"
@@ -360,7 +371,7 @@ run_targeted_followups() {
         followup="$(component_followup "$name")"
         [ -n "$followup" ] || continue
 
-        step_if_clean "$baseline" "${followup#*|}" "${followup%%|*}"
+        step "${followup#*|}" "${followup%%|*}"
     done
 }
 
