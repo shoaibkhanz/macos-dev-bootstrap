@@ -390,8 +390,11 @@ So the same detour cannot cost anything twice:
   with a comment asserting config.toml was "in place first" and nothing
   checking it. Both paths now go through `step_if_clean`. Verified with an
   unwritable `$HOME` holding a detached `config.toml`, once per path: the
-  backup step fails, the plugin step is skipped and says which dependency
-  failed, the detached file is unchanged, and the run exits 1.
+  backup step fails, the dependent step is skipped with a warning saying so,
+  the detached file is unchanged, and the run exits 1. `main`'s skip names the
+  step (`Skipping 'herdr plugins': a step it depends on failed`); the targeted
+  path warns once for the whole follow-up set, since they all share the one
+  transaction as their dependency.
 
   The baseline is tested once, before the follow-up loop, not per follow-up.
   `FAILED_STEPS` grows when a follow-up itself fails, so comparing inside the
