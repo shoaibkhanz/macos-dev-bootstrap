@@ -36,6 +36,13 @@ nvim/lazy-lock.json
 .claude/
 .conductor/
 
+# `npx skills add` output, if it is ever run at this repo root by mistake. It
+# writes a parallel project-level install instead of updating the vendored tree
+# under claude/agents/skills/ (claude/SKILLS_CLEANUP.md, "How to sync"), so it
+# must never be committed. `.claude/skills/` is already covered by `.claude/`.
+/.agents/
+/skills-lock.json
+
 # Machine-local skill symlink (absolute path, not portable)
 claude/agents/skills/code-hyperlearning
 

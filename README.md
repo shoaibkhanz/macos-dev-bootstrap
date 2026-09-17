@@ -35,9 +35,33 @@ cd macos-dev-bootstrap
 | `--dry-run` | Print every action without making changes |
 | `--skip-brew` | Skip Homebrew install and `brew bundle` |
 | `--work` | Skip personal-only Brewfile entries (sets `HOMEBREW_BUNDLE_WORK=1`) |
-| `--herdr` | Only refresh herdr config + integrations, then exit (skips the full bootstrap) |
-| `--claude` | Install Claude/agent skills, settings, rules & commands (default: **left untouched**) |
-| `--help` | Show usage |
+| `--only <a,b>` | Install only the named components, then exit — skips the rest of the bootstrap |
+| `--skills` | Shorthand for `--only skills`: re-link the vendored agent skills |
+| `--herdr` | Shorthand for `--only herdr`: refresh herdr config, plugins + integrations |
+| `--claude` | In a full run, also install Claude/agent skills, settings, rules & commands (default: **left untouched**) |
+| `--help` | Show usage, including the component list |
+
+### Targeted runs
+
+A full bootstrap is for a fresh machine. Day to day, install one part:
+
+```bash
+./install.sh --skills              # re-link vendored skills, prune links for dropped ones
+./install.sh --only claude         # skills + hooks, commands, rules, settings.json
+./install.sh --only dotfiles,git   # runs in dependency order, whatever order you list them
+./install.sh --only brew --dry-run
+```
+
+Components: `brew`, `claude-code`, `omp`, `macos`, `dotfiles`, `herdr`,
+`skills`, `claude`, `opencode`, `marimo`, `git`, `shell`, `tmux`, `nvim`,
+`secrets`. `./install.sh --help` prints what each one covers. A targeted run
+reports failures and exits non-zero exactly like a full one, and `--dry-run`
+works with all of them.
+
+The backup guarantee holds here too: any component that overwrites live config
+(`dotfiles`, `herdr`, `skills`, `claude`, `opencode`, `marimo`) runs behind the
+same backup, in one step with it, so a failed backup stops the overwrite. A
+targeted run backs up only the paths its own components write.
 
 To mark additional packages as personal-only, move them inside the `unless work?` block in `Brewfile`.
 
@@ -182,7 +206,7 @@ will never install.
   | `active-agent.jump` | [shoaibkhanz/herdr-active-agent-jump](https://github.com/shoaibkhanz/herdr-active-agent-jump) | `prefix+j` / `prefix+k` |
   | `attention.jump` | [milkyskies/herdr-attention](https://github.com/milkyskies/herdr-attention) | `prefix+a` |
   | `herdr-plugin-workspace-manager` | [razajamil/herdr-plugin-workspace-manager](https://github.com/razajamil/herdr-plugin-workspace-manager) | per-worktree layouts (event-driven, no key) |
-- **Fast refresh** - `./install.sh --herdr` re-links the herdr configs, re-installs the plugins above, and re-runs `herdr integration install` for `pi`/`omp`/`claude` without running the rest of the installer — run it after pulling latest herdr changes.
+- **Fast refresh** - `./install.sh --herdr` (= `--only herdr`) re-links the herdr configs, re-installs the plugins above, and re-runs `herdr integration install` for `pi`/`omp`/`claude` without running the rest of the installer — run it after pulling latest herdr changes.
 
 ### Global Gitignore
 Automatically ignores across all repos:

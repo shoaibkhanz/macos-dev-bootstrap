@@ -5,14 +5,46 @@ sources plus personal skills, and refreshed everything to the latest upstream.
 
 ## Sources of truth
 
-| Collection | Repo | Install / update |
-|---|---|---|
-| Superpowers (Jesse Vincent / obra) | https://github.com/obra/superpowers | `/plugin install superpowers@claude-plugins-official` — vendored here under `claude/agents/skills/` |
-| Matt Pocock — "Skills for Real Engineers" | https://github.com/mattpocock/skills | `npx skills@latest add mattpocock/skills` — vendored here |
+| Collection | Repo |
+|---|---|
+| Superpowers (Jesse Vincent / obra) | https://github.com/obra/superpowers |
+| Matt Pocock — "Skills for Real Engineers" | https://github.com/mattpocock/skills |
 
 Vendored (copied into this repo) rather than plugin-installed, to match the
 existing dotfiles pattern where `install.sh` symlinks each skill into
 `~/.claude/skills/` and `~/.agents/skills`.
+
+## How to sync (current procedure)
+
+**Do not run either upstream's installer here.** `npx skills@latest add
+mattpocock/skills` does not update the vendored tree: it writes a separate
+project-level install (`.agents/skills/` + `skills-lock.json` at the repo
+root), and pointed at `~/.claude/skills` it writes *through* this repo's
+symlinks. `/plugin install` has the same problem in the other direction — see
+"Plugin skills left unvendored". Instead:
+
+```sh
+# Deep enough to compute the delta: --depth 1 has no history, and the commit
+# range below is what surfaces renames, demotions and graduations that a
+# file-level diff reads as ordinary edits.
+git clone --depth 50 https://github.com/mattpocock/skills /tmp/mp-skills
+
+# Review the delta since the sha recorded in the last sync section below.
+git -C /tmp/mp-skills log --oneline <last-vendored-sha>..HEAD
+git -C /tmp/mp-skills diff --name-status <last-vendored-sha>..HEAD
+
+# Then copy only the buckets we vendor (NOT in-progress/, deprecated/, personal/).
+diff -rq claude/agents/skills/<name> /tmp/mp-skills/skills/<bucket>/<name>
+rsync -a --delete /tmp/mp-skills/skills/<bucket>/<name>/ claude/agents/skills/<name>/
+
+./install.sh --skills   # re-link, and prune links for renamed/dropped skills
+```
+
+Then add a dated sync section to the end of this file: the new upstream sha,
+what moved, what was deliberately not taken, and why. Reading `log` and not
+just `diff` is load-bearing — the 2026-09-16 check found upstream's `misc/`
+demotion (`8666e05`) only in the commit list, since it changed a script this
+repo does not vendor.
 
 ## Result: 40 skills (was 57)
 
@@ -273,3 +305,74 @@ records that for wrong-shaped output a prohibition list measurably backfires
 while a positive recipe holds, and the list mostly restated the moves in the
 negative. The recipe stayed, and only the failures the recipe cannot express in
 the positive survived as prohibitions.
+
+# Skills sync check — 2026-09-16
+
+Checked mattpocock/skills upstream HEAD `959a8e9` (v1.2.3 + 44 commits)
+against the vendored set. **All 29 vendored Matt Pocock skills are
+byte-identical to upstream HEAD** — the v1.2 cleanup was already captured by
+the 2026-08-23 re-vendor — so nothing was re-vendored.
+
+## Upstream changes since `5b15a47`, and what we did with them
+
+- `skills/in-progress/retro/` — new, still in-progress (post-task
+  retrospective; pushes mechanical coding-standards findings toward
+  deterministic checks). **Not vendored**, per the standing policy of waiting
+  for graduation out of `in-progress/`. Also still there: `implement-spec`,
+  `setup-ts-deep-modules`, `claude-handoff`, `loop-me`, `writing-beats`,
+  `writing-fragments`, `writing-shape`.
+- `8666e05` demoted `misc/` from upstream's own daily-driver linking
+  (`git-guardrails-claude-code`, `migrate-to-shoehorn`, `scaffold-exercises`,
+  `setup-pre-commit` are "kept around but rarely used and not promoted").
+  **Kept here anyway**, deliberately — upstream still ships and maintains
+  them, they only stopped being auto-linked.
+
+## Installer detour, reverted
+
+`npx skills@latest add mattpocock/skills` was run from the repo root. It does
+not update the vendored tree; it created a parallel project-level install —
+`.agents/skills/` (37 skills, including all eight `in-progress/` ones),
+`.claude/skills/` symlinks into it, and `skills-lock.json` — duplicating the
+29 vendored skills byte-for-byte. Removed all three; `.claude/settings.local.json`
+predates the installer and was kept. `~/.claude/skills/` was never touched and
+has no dangling links.
+
+## Guardrails added afterwards
+
+So the same detour cannot cost anything twice:
+
+- The "Sources of truth" table at the top of this file used to prescribe `npx
+  skills@latest add mattpocock/skills` as the *update* command, which is what
+  produced the detour. It now carries no command; the procedure lives in "How
+  to sync" beside it, scratch clone and all.
+- `.gitignore` ignores `/.agents/` and `/skills-lock.json` at the repo root.
+  Both were untracked *and* unignored, so the next `git add -A` would have
+  committed a second copy of 29 skills plus eight in-progress ones.
+  `.claude/skills/` needed no entry: `.claude/` is already ignored.
+- `install.sh` grew `--skills` (and a general `--only <components>`), so
+  re-linking skills after a sync is one targeted command rather than a full
+  bootstrap. `link_agent_skills` now also prunes `~/.claude/skills` links that
+  dangle *and* point at this repo's layout, which covers both a renamed or
+  dropped skill and the deleted-worktree case from 2026-07-04. Foreign links
+  (`learned`, `plaud-*`, plugin installs) are left alone — verified against a
+  planted dangling link of each kind.
+- Every targeted run that overwrites config now runs `backup_existing` first,
+  in the *same* `step` as the linking, because `step` deliberately continues
+  after a failure and a backup in its own step could fail while the links
+  still got written. Verified: with the backup directory's parent unwritable,
+  `--only dotfiles` fails the step and leaves the existing `~/.zshrc` intact.
+- The backup list is now scoped to what the run will actually overwrite, and
+  it gained the paths `link_agent_skills` deletes: `~/.agents/skills` and each
+  `~/.claude/skills/<name>`. Symlinks are skipped as before, so this only
+  fires for a *real* directory sitting where one of our links belongs —
+  exactly the case that lost the three plannotator skills' local state in
+  2026-08-23. It also gained the other two paths `link_herdr_configs` writes
+  (the workspace-manager and radar plugin configs); the radar one is the path
+  install.sh already records as having been replaced by a detached real file.
+- `--only herdr` is split in two. `link_herdr_tree` overwrites config, so it
+  sits in the transaction; `update_herdr_plugins` (plugin installs and
+  `herdr integration install`) is dispatched as its own step, because it fails
+  for unrelated reasons — network — and inside the shared step a GitHub outage
+  would abort it and skip every component queued behind. Verified with a
+  stubbed-failing `install_herdr_plugins`: on `--only herdr,skills` both config
+  halves land, only the plugin step is reported failed, and the run exits 1.

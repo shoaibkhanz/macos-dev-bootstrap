@@ -27,7 +27,9 @@ BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
 DRY_RUN=false
 SKIP_BREW=false
 WORK_MODE=false
-HERDR_ONLY=false
+# Components requested by --only / its shorthands (--skills, --herdr). Empty
+# means a full install.
+ONLY_TARGETS=()
 INSTALL_CLAUDE=false
 
 # =============================================================================
@@ -148,15 +150,227 @@ link_herdr_configs() {
         "$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar/config.toml"
 }
 
-# --herdr fast path: refresh only herdr config + plugins + integrations,
-# wherever run.
-update_herdr() {
+# `--only herdr` in two halves, because they fail for unrelated reasons.
+#
+# This half overwrites live config, so it runs inside the backup transaction
+# with every other overwriting component.
+link_herdr_tree() {
     info "Updating herdr configuration from $SCRIPT_DIR/herdr..."
     run mkdir -p "$HOME/.config/herdr"
     link_herdr_configs
+    success "Herdr configs linked."
+}
+
+# The other half: plugin installs and integration registration, both of which
+# talk to the network. It gets its own step (see component_followup) so a
+# GitHub hiccup is reported on its own instead of aborting the shared
+# transaction and taking every later component's links down with it.
+update_herdr_plugins() {
     install_herdr_plugins
     configure_herdr_integrations
-    success "Herdr configuration updated."
+    success "Herdr plugins and integrations updated."
+}
+
+# =============================================================================
+# Targeted Installs (--only)
+# =============================================================================
+
+# Every component a targeted run can install, as "<name>|<step label>|<function>".
+#
+# The registry order is the order a composed --only run applies them, and it
+# mirrors the full install's ordering so the same dependencies hold: brew
+# before anything that needs its binaries, dotfiles (which links
+# herdr/config.toml) before the herdr plugins its keybinds address, skills
+# before the wider Claude config that also links them.
+#
+# Adding a component here is enough — parse_args, --help and the runner all
+# read this list.
+INSTALL_COMPONENTS=(
+    "brew|Homebrew packages|install_brew_stack"
+    "claude-code|Claude Code CLI|install_claude_code"
+    "omp|omp|install_omp"
+    "macos|macOS defaults|configure_macos"
+    "dotfiles|dotfile symlinks|link_dotfiles"
+    "herdr|herdr configs|link_herdr_tree"
+    "skills|agent skill symlinks|link_agent_skills"
+    "claude|Claude/agent config|link_claude_configs"
+    "opencode|opencode config|link_opencode_configs"
+    "marimo|marimo config|install_marimo_config"
+    "git|git config|configure_git"
+    "shell|default shell + non-interactive PATH|configure_shell"
+    "tmux|tmux plugins|install_tpm"
+    "nvim|neovim providers|install_neovim_providers"
+    "secrets|secrets template|create_secrets_template"
+)
+
+# One line of --help per component. Kept apart from the registry so the
+# registry stays a plain three-field table.
+component_help() {
+    case $1 in
+        brew)        echo "Homebrew itself, cask conflicts and the whole Brewfile" ;;
+        claude-code) echo "the Claude Code CLI (npm)" ;;
+        omp)         echo "the omp CLI" ;;
+        macos)       echo "macOS system defaults" ;;
+        dotfiles)    echo "zshrc, tmux.conf, nvim, ghostty, starship, lazygit, herdr configs" ;;
+        herdr)       echo "herdr config.toml, plugin configs, plugins, integrations" ;;
+        skills)      echo "vendored agent skills -> ~/.claude/skills + ~/.agents/skills, stale links pruned" ;;
+        claude)      echo "skills, plus hooks, commands, rules and settings.json" ;;
+        opencode)    echo "opencode agents, prompts, docs and Obsidian skills" ;;
+        marimo)      echo "marimo notebook config" ;;
+        git)         echo "global git config and delta setup" ;;
+        shell)       echo "zsh as default shell, plus ~/.zshenv PATH (personal only)" ;;
+        tmux)        echo "tpm and the tmux plugins" ;;
+        nvim)        echo "neovim python/node providers and the uv-managed host venv" ;;
+        secrets)     echo "the ~/.secrets template" ;;
+        *)           echo "" ;;
+    esac
+}
+
+# Append a comma- or space-separated component list to ONLY_TARGETS, rejecting
+# names the registry does not know and dropping duplicates (so `--skills
+# --only skills` runs the component once).
+add_only_targets() {
+    local raw="$1" name entry known
+
+    for name in $(printf '%s' "$raw" | tr ',' ' '); do
+        known=false
+        for entry in "${INSTALL_COMPONENTS[@]}"; do
+            if [ "$name" = "${entry%%|*}" ]; then
+                known=true
+                break
+            fi
+        done
+        if [ "$known" = false ]; then
+            error "Unknown component: $name. Run $0 --help for the list."
+        fi
+        target_requested "$name" || ONLY_TARGETS+=("$name")
+    done
+}
+
+target_requested() {
+    local t
+    for t in ${ONLY_TARGETS[@]+"${ONLY_TARGETS[@]}"}; do
+        [ "$t" = "$1" ] && return 0
+    done
+    return 1
+}
+
+# Components that overwrite live config — link_file `rm -rf`s its target, and
+# install_marimo_config rewrites its files in place. Every one of them must run
+# behind backup_existing, inside the same step, so a failed backup stops the
+# overwrite (the transaction rule backup_and_install_configs states for the
+# full install).
+component_overwrites_config() {
+    case $1 in
+        dotfiles|herdr|skills|claude|opencode|marimo) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Which overwriting components this run targets, for the step label.
+targeted_overwriting_components() {
+    local entry name out=""
+    for entry in "${INSTALL_COMPONENTS[@]}"; do
+        name="${entry%%|*}"
+        target_requested "$name" || continue
+        component_overwrites_config "$name" || continue
+        out="$out${out:+, }$name"
+    done
+    printf '%s' "$out"
+}
+
+# backup_existing plus every targeted overwriting component, as one step.
+#
+# They run together rather than one step each because `step` deliberately keeps
+# going after a failure: a backup in its own step could fail and the links
+# would still be written. In here, the step's errexit stops at the backup.
+run_targeted_config_components() {
+    local entry name fn
+
+    backup_existing
+
+    for entry in "${INSTALL_COMPONENTS[@]}"; do
+        name="${entry%%|*}"
+        target_requested "$name" || continue
+        component_overwrites_config "$name" || continue
+
+        # `claude` links the skills itself; asking for both would re-link every
+        # skill twice for no effect.
+        if [ "$name" = skills ] && target_requested claude; then
+            continue
+        fi
+
+        fn="${entry##*|}"
+        "$fn"
+    done
+}
+
+# Work a component does *after* the overwrite transaction, as
+# "<function>|<step label>", or nothing.
+#
+# This is for work that fails for reasons unrelated to the config it follows —
+# network calls, mostly. Keeping it out of the shared transaction means a
+# GitHub outage installing herdr plugins no longer aborts that step and skips
+# every component queued behind it.
+component_followup() {
+    case $1 in
+        herdr) printf 'update_herdr_plugins|herdr plugins + integrations' ;;
+        *)     printf '' ;;
+    esac
+}
+
+run_targeted_followups() {
+    local entry name followup
+
+    for entry in "${INSTALL_COMPONENTS[@]}"; do
+        name="${entry%%|*}"
+        target_requested "$name" || continue
+
+        followup="$(component_followup "$name")"
+        [ -n "$followup" ] || continue
+
+        step "${followup#*|}" "${followup%%|*}"
+    done
+}
+
+# Run just the requested components, in registry order, then report exactly
+# like a full install does.
+run_only_targets() {
+    local entry name label fn configs_done=false
+
+    for entry in "${INSTALL_COMPONENTS[@]}"; do
+        name="${entry%%|*}"
+        target_requested "$name" || continue
+
+        # All the overwriting components go in one backup-first step, taken at
+        # the position of the first of them, with any follow-up work dispatched
+        # as its own step right after. That only ever moves an overwriting
+        # component earlier relative to a non-overwriting one, and the single
+        # ordering that matters — herdr's configs before the plugins whose
+        # actions they bind — is preserved by the follow-up coming second.
+        if component_overwrites_config "$name"; then
+            if [ "$configs_done" = false ]; then
+                configs_done=true
+                step "backup + $(targeted_overwriting_components)" \
+                    run_targeted_config_components
+                run_targeted_followups
+            fi
+            continue
+        fi
+
+        label="${entry#*|}"
+        label="${label%%|*}"
+        fn="${entry##*|}"
+        step "$label" "$fn"
+
+        # PATH has to be re-established out here: a `brew shellenv` eval inside
+        # the step above died with that subshell, and later components (tmux,
+        # uv, nvim, delta) need brew's bin dir. Same reason main interleaves it
+        # between its brew steps.
+        if [ "$name" = brew ]; then
+            ensure_brew_path
+        fi
+    done
 }
 
 # =============================================================================
@@ -171,8 +385,8 @@ check_macos() {
 }
 
 parse_args() {
-    for arg in "$@"; do
-        case $arg in
+    while [ $# -gt 0 ]; do
+        case $1 in
             --dry-run)
                 DRY_RUN=true
                 warn "Dry-run mode enabled. No changes will be made."
@@ -185,28 +399,64 @@ parse_args() {
                 WORK_MODE=true
                 warn "Work mode enabled. Personal-only packages will be skipped."
                 ;;
+            --only)
+                [ $# -ge 2 ] || error "--only needs a component list, e.g. --only skills. See --help."
+                add_only_targets "$2"
+                shift
+                ;;
+            --only=*)
+                add_only_targets "${1#--only=}"
+                ;;
+            --skills)
+                add_only_targets skills
+                ;;
             --herdr)
-                HERDR_ONLY=true
-                warn "Herdr-only mode: refreshing herdr config + integrations only."
+                add_only_targets herdr
                 ;;
             --claude)
                 INSTALL_CLAUDE=true
                 warn "Claude mode: Claude/agent skills, settings, rules & commands WILL be installed (overwriting existing)."
                 ;;
             --help|-h)
-                echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--herdr] [--claude] [--help]"
-                echo ""
-                echo "Options:"
-                echo "  --dry-run    Preview changes without making them"
-                echo "  --skip-brew  Skip Homebrew install and brew bundle"
-                echo "  --work       Skip personal-only packages (e.g. handy)"
-                echo "  --herdr      Only refresh herdr config + integrations (skip everything else)"
-                echo "  --claude     Install Claude/agent skills, settings, rules & commands (default: left untouched)"
-                echo "  --help       Show this help message"
+                print_usage
                 exit 0
                 ;;
+            *)
+                error "Unknown option: $1. See --help."
+                ;;
         esac
+        shift
     done
+
+    if ((${#ONLY_TARGETS[@]})); then
+        warn "Targeted run: ${ONLY_TARGETS[*]} — nothing else will be touched."
+    fi
+}
+
+print_usage() {
+    local entry
+    echo "Usage: $0 [--dry-run] [--skip-brew] [--work] [--claude]"
+    echo "       $0 --only <component>[,<component>...] [--dry-run]"
+    echo "       $0 --skills | --herdr        (shorthands for --only skills / --only herdr)"
+    echo ""
+    echo "Options:"
+    echo "  --dry-run    Preview changes without making them"
+    echo "  --skip-brew  Skip Homebrew install and brew bundle"
+    echo "  --work       Skip personal-only packages (e.g. handy)"
+    echo "  --claude     Install Claude/agent skills, settings, rules & commands (default: left untouched)"
+    echo "  --only       Install only the named components, in dependency order,"
+    echo "               and skip the rest of the bootstrap. Repeatable."
+    echo "  --help       Show this help message"
+    echo ""
+    echo "Components for --only:"
+    for entry in "${INSTALL_COMPONENTS[@]}"; do
+        printf '  %-11s %s\n' "${entry%%|*}" "$(component_help "${entry%%|*}")"
+    done
+    echo ""
+    echo "Examples:"
+    echo "  $0 --skills                 # re-link vendored agent skills, prune stale links"
+    echo "  $0 --only skills,claude     # skills plus the rest of the Claude/agent config"
+    echo "  $0 --only dotfiles --dry-run"
 }
 
 # =============================================================================
@@ -271,6 +521,18 @@ clear_cask_conflicts() {
     if [ "$found_any" = false ]; then
         info "No conflicts found"
     fi
+}
+
+# The whole brew phase as one `--only brew` component: install Homebrew, clear
+# the cask conflicts a fresh machine trips over, then run the Brewfile. Each
+# ensure_brew_path is needed for the same reason it is in main — a `brew
+# shellenv` eval cannot escape the step subshell it ran in.
+install_brew_stack() {
+    install_homebrew
+    ensure_brew_path
+    clear_cask_conflicts
+    install_packages
+    ensure_brew_path
 }
 
 install_packages() {
@@ -502,36 +764,81 @@ configure_macos() {
     warn "  every already-running app keeps the key repeat rate it launched with."
 }
 
+# Copy aside every live config the components about to run will overwrite.
+#
+# A full install backs up the lot. A targeted (--only) run backs up exactly
+# what its components write, so the backup directory never suggests a file was
+# touched when it was not.
 backup_existing() {
     info "Backing up existing configurations..."
 
-    local files_to_backup=(
-        "$HOME/.zshrc"
-        "$HOME/.tmux.conf"
-        "$HOME/.gitignore_global"
-        "$HOME/.config/nvim"
-        "$HOME/.config/ghostty"
-        "$HOME/.config/starship.toml"
-        "$HOME/.config/lazygit"
-        "$HOME/.config/marimo"
-        "$HOME/.config/herdr/config.toml"
-    )
+    local full_run=true
+    ((${#ONLY_TARGETS[@]})) && full_run=false
 
-    # Only back up (and thus later overwrite) Claude/agent config when opted in
-    # via --claude. Otherwise leave the existing tree entirely untouched.
-    if [ "$INSTALL_CLAUDE" = true ]; then
+    local files_to_backup=()
+
+    if [ "$full_run" = true ] || target_requested dotfiles; then
+        files_to_backup+=(
+            "$HOME/.zshrc"
+            "$HOME/.tmux.conf"
+            "$HOME/.gitignore_global"
+            "$HOME/.config/nvim"
+            "$HOME/.config/ghostty"
+            "$HOME/.config/starship.toml"
+            "$HOME/.config/lazygit"
+        )
+    fi
+
+    if [ "$full_run" = true ] || target_requested marimo; then
+        files_to_backup+=("$HOME/.config/marimo")
+    fi
+
+    # Every path link_herdr_configs writes, linked by both dotfiles (which
+    # calls it) and herdr. Worth backing up even though these are normally
+    # symlinks: the radar plugin rewrites its config with temp-file + rename,
+    # which leaves a detached real file where our link was (it did exactly that
+    # on 2026-09-16), and link_file would then delete the edits in it.
+    if [ "$full_run" = true ] || target_requested dotfiles || target_requested herdr; then
+        files_to_backup+=(
+            "$HOME/.config/herdr/config.toml"
+            "$HOME/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml"
+            "$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar/config.toml"
+        )
+    fi
+
+    # Claude/agent config is only backed up — and so only overwritten — when
+    # opted into with --claude, or named by a targeted run. Otherwise the
+    # existing tree is left entirely untouched.
+    local skill name
+    if [ "$INSTALL_CLAUDE" = true ] || target_requested claude || target_requested skills; then
+        files_to_backup+=("$HOME/.agents/skills")
+        # link_agent_skills rm -rf's each ~/.claude/skills/<name> before
+        # relinking it. Those are normally our own symlinks, which the copy
+        # loop below skips — but a real directory does turn up there (a plugin
+        # install, or a stale copy of one of ours, as three plannotator skills
+        # were in 2026-08-23), and that one is worth keeping.
+        for skill in "$SCRIPT_DIR"/claude/agents/skills/*/; do
+            [ -d "$skill" ] || continue
+            name="$(basename "$skill")"
+            files_to_backup+=("$HOME/.claude/skills/$name")
+        done
+    fi
+
+    if [ "$INSTALL_CLAUDE" = true ] || target_requested claude; then
         files_to_backup+=(
             "$HOME/.claude/settings.json"
             "$HOME/.claude/rules"
             "$HOME/.claude/commands"
-            "$HOME/.agents/skills"
             "$HOME/.agents/hooks"
             "$HOME/.agents/commands"
         )
-        # link_opencode_configs rm -rf's these, so they belong in the same
-        # transaction as everything else --claude overwrites. Listed per path
-        # rather than as ~/.config/opencode, because cp -r on the directory
-        # would drag node_modules and the plugin runtime into every backup.
+    fi
+
+    # link_opencode_configs rm -rf's these, so they belong in the same
+    # transaction as everything else it overwrites. Listed per path rather than
+    # as ~/.config/opencode, because cp -r on the directory would drag
+    # node_modules and the plugin runtime into every backup.
+    if [ "$INSTALL_CLAUDE" = true ] || target_requested opencode; then
         local oc="$HOME/.config/opencode"
         files_to_backup+=(
             "$oc/agent/obsidian.md"
@@ -549,6 +856,13 @@ backup_existing() {
             "$oc/skill/blog-draft"
         )
     fi
+
+    # No paths in scope: nothing to copy, and `"${files_to_backup[@]}"` on an
+    # empty array is an unbound-variable error under `set -u` in bash 3.2.
+    ((${#files_to_backup[@]})) || {
+        info "Nothing in scope to back up"
+        return 0
+    }
 
     local backup_needed=false
     for file in "${files_to_backup[@]}"; do
@@ -607,13 +921,55 @@ install_marimo_config() {
     success "Marimo config installed (paths resolved for $HOME)"
 }
 
+# Symlink every vendored skill so both harness layouts find it: Claude Code
+# reads ~/.claude/skills one entry per skill, everything else reads the tree as
+# a whole at ~/.agents/skills.
+#
+# `npx skills@latest add …` is NOT the way to refresh these. It writes a
+# separate project-level install (.agents/skills/ + skills-lock.json at the
+# repo root) and leaves the vendored tree alone; run it against
+# ~/.claude/skills and it writes through these symlinks into the repo. Sync
+# upstream into claude/agents/skills/ from a scratch clone instead, then re-run
+# `./install.sh --skills`. See claude/SKILLS_CLEANUP.md.
+link_agent_skills() {
+    local skill name link target
+
+    info "Linking agent skills from $SCRIPT_DIR/claude/agents/skills..."
+    link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
+
+    # Per-skill symlinks so vendored skills are discoverable by Claude Code.
+    for skill in "$SCRIPT_DIR"/claude/agents/skills/*/; do
+        [ -d "$skill" ] || continue
+        name="$(basename "$skill")"
+        link_file "${skill%/}" "$HOME/.claude/skills/$name"
+    done
+
+    # Drop links left behind by a skill this repo renamed or dropped — and by a
+    # deleted worktree of it, which is how ~/.claude/skills ended up holding 38
+    # dead links once already. Only dangling links pointing at *some* copy of
+    # this layout go: a plugin-installed skill directory, `learned/` and the
+    # `plaud-*` set are not ours to prune.
+    for link in "$HOME"/.claude/skills/*; do
+        [ -L "$link" ] || continue
+        [ -e "$link" ] && continue
+        target="$(readlink "$link")"
+        case "$target" in
+            */claude/agents/skills/*)
+                run rm -f "$link"
+                warn "Pruned dead skill link: $(basename "$link") -> $target"
+                ;;
+        esac
+    done
+
+    success "Agent skills linked."
+}
+
 # Symlink Claude Code + agent config (skills, hooks, commands, rules, settings).
 # Opt-in via --claude so we never overwrite an existing setup by default.
 link_claude_configs() {
-    local skill name
+    link_agent_skills
 
-    # Claude Code: agents (skills, hooks, commands)
-    link_file "$SCRIPT_DIR/claude/agents/skills" "$HOME/.agents/skills"
+    # Claude Code: agents (hooks, commands)
     link_file "$SCRIPT_DIR/claude/agents/hooks" "$HOME/.agents/hooks"
     link_file "$SCRIPT_DIR/claude/agents/commands" "$HOME/.agents/commands"
 
@@ -621,13 +977,6 @@ link_claude_configs() {
     link_file "$SCRIPT_DIR/claude/rules" "$HOME/.claude/rules"
     link_file "$SCRIPT_DIR/claude/commands" "$HOME/.claude/commands"
     link_file "$SCRIPT_DIR/claude/settings.json" "$HOME/.claude/settings.json"
-
-    # Claude Code: per-skill symlinks so vendored skills are discoverable
-    for skill in "$SCRIPT_DIR"/claude/agents/skills/*/; do
-        [ -d "$skill" ] || continue
-        name="$(basename "$skill")"
-        link_file "${skill%/}" "$HOME/.claude/skills/$name"
-    done
 }
 
 # The live ~/.config/opencode tree is not ours to own: it holds node_modules,
@@ -661,7 +1010,9 @@ link_opencode_configs() {
     done
 }
 
-create_symlinks() {
+# Shell, editor and terminal configs — everything under the repo that is not
+# agent config. Shared by the full install and `--only dotfiles`.
+link_dotfiles() {
     info "Creating symlinks..."
 
     # Ensure .config directory exists
@@ -676,11 +1027,15 @@ create_symlinks() {
     link_file "$SCRIPT_DIR/starship.toml" "$HOME/.config/starship.toml"
     link_file "$SCRIPT_DIR/lazygit" "$HOME/.config/lazygit"
     link_herdr_configs
+}
+
+create_symlinks() {
+    link_dotfiles
 
     # Claude Code / agent config: opt-in only (--claude). By default we never
     # touch an existing ~/.claude, ~/.agents or ~/.config/opencode tree, so
     # pulling this repo onto another machine won't clobber that machine's own
-    # skills/settings.
+    # skills/settings. `--only claude` / `--only skills` install it directly.
     if [ "$INSTALL_CLAUDE" = true ]; then
         link_claude_configs
         link_opencode_configs
@@ -733,6 +1088,13 @@ configure_git() {
         warn "delta not installed — skipping delta config (run brew bundle to install)"
         success "Git configured (gitignore only)"
     fi
+}
+
+# Shell ownership as one `--only shell` component. configure_noninteractive_path
+# no-ops itself under --work.
+configure_shell() {
+    configure_zsh
+    configure_noninteractive_path
 }
 
 configure_zsh() {
@@ -992,7 +1354,7 @@ EOF
     warn "Copy to ~/.secrets and add your actual API keys"
 }
 
-# Shared by the full install and the --herdr fast path: the list of steps that
+# Shared by the full install and targeted (--only) runs: the list of steps that
 # failed, and how to recover. No-op when everything succeeded.
 print_failure_summary() {
     ((${#FAILED_STEPS[@]})) || return 0
@@ -1004,7 +1366,8 @@ print_failure_summary() {
     done
     echo ""
     echo "Scroll up for the [ERROR] line of each one. Fix the cause, then re-run"
-    echo "./install.sh — it is idempotent, finished steps are skipped or refreshed."
+    echo "./install.sh (or just the failed part, e.g. --only <component>) — it is"
+    echo "idempotent, finished steps are skipped or refreshed."
     echo ""
 }
 
@@ -1064,8 +1427,10 @@ main() {
     parse_args "$@"
     check_macos
 
-    if [ "$HERDR_ONLY" = true ]; then
-        step "herdr config" update_herdr
+    # Targeted run: just the requested components, then report and stop.
+    if ((${#ONLY_TARGETS[@]})); then
+        ensure_brew_path
+        run_only_targets
         if [ "$DRY_RUN" = true ]; then
             echo ""
             echo -e "${YELLOW}This was a dry run. No changes were made.${NC}"
@@ -1075,6 +1440,8 @@ main() {
             print_failure_summary
             exit 1
         fi
+        echo ""
+        success "Done: ${ONLY_TARGETS[*]}"
         return 0
     fi
 
