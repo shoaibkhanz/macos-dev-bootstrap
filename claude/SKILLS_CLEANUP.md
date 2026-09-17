@@ -378,11 +378,17 @@ So the same detour cannot cost anything twice:
   halves land, only the plugin step is reported failed, and the run exits 1.
 
   The split needed a guard the shared subshell used to provide for free.
-  `step` always returns 0, so a follow-up would otherwise run over a *failed*
-  transaction: backup fails, configs are never linked, and
+  `step` always returns 0, so a dependent phase would otherwise run over a
+  *failed* one: backup fails, configs are never linked, and
   `install_herdr_plugins` then lets the radar plugin write its sidebar block
   into whatever detached `config.toml` is still live — precisely the file the
-  backup just failed to copy aside. Follow-ups now run only if
-  `FAILED_STEPS` did not grow across the transaction. Verified with an
-  unwritable `$HOME`: `--only herdr` fails the step, skips the follow-up,
-  leaves the detached config byte-for-byte, and exits 1.
+  backup just failed to copy aside. `step_if_clean` takes the `FAILED_STEPS`
+  length from before the phase it depends on and runs only if it did not grow.
+
+  The full install had the identical hole, and had had it all along: `step
+  "backup + configs"` was followed by an unconditional `step "herdr plugins"`,
+  with a comment asserting config.toml was "in place first" and nothing
+  checking it. Both paths now go through `step_if_clean`. Verified with an
+  unwritable `$HOME` holding a detached `config.toml`, once per path: the
+  backup step fails, the plugin step is skipped and says which dependency
+  failed, the detached file is unchanged, and the run exits 1.

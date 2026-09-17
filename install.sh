@@ -96,6 +96,35 @@ step() {
     return 0
 }
 
+# Run a phase only if the phase it depends on succeeded.
+#
+# `step` always returns 0 — that is the whole point of it, one phase's failure
+# must not abort the bootstrap — so a dependent phase has to check for itself,
+# and the only record is FAILED_STEPS. Snapshot its length before the phase you
+# depend on, pass that as `baseline`, and this runs only if it did not grow.
+#
+# The dependency this exists for is not cosmetic ordering. Linking configs is
+# what makes `herdr plugin install` safe: the radar plugin's build step writes
+# a sidebar block into ~/.config/herdr/config.toml, and only refuses (with
+# "foreign-table") because the block it wants is already committed in the
+# config.toml this repo links there. Run it over a failed backup, where the
+# live file is still the user's own detached copy, and it writes into that
+# instead — the very file the backup failed to preserve.
+#
+# `if`, not `[ … ] &&`: the false branch of an `&&` list is a non-zero return
+# from the last command in the function, which errexit in the caller would
+# take as a failure.
+step_if_clean() {
+    local baseline="$1" label="$2"
+    shift 2
+
+    if [ "${#FAILED_STEPS[@]}" -eq "$baseline" ]; then
+        step "$label" "$@"
+    else
+        warn "Skipping '$label': a step it depends on failed."
+    fi
+}
+
 # Homebrew's bin dir must be on PATH for later steps (tmux, uv, nvim, delta) to
 # find their binaries. Re-applied in main after the brew steps because a fresh
 # `brew shellenv` eval inside a `step` subshell dies with that subshell.
@@ -319,8 +348,10 @@ component_followup() {
     esac
 }
 
+# Each follow-up runs only if the transaction it follows succeeded, hence the
+# baseline from the caller — see step_if_clean for why that matters.
 run_targeted_followups() {
-    local entry name followup
+    local baseline="$1" entry name followup
 
     for entry in "${INSTALL_COMPONENTS[@]}"; do
         name="${entry%%|*}"
@@ -329,7 +360,7 @@ run_targeted_followups() {
         followup="$(component_followup "$name")"
         [ -n "$followup" ] || continue
 
-        step "${followup#*|}" "${followup%%|*}"
+        step_if_clean "$baseline" "${followup#*|}" "${followup%%|*}"
     done
 }
 
@@ -352,22 +383,12 @@ run_only_targets() {
             if [ "$configs_done" = false ]; then
                 configs_done=true
 
-                # `step` always returns 0, so the transaction's outcome has to
-                # be read off FAILED_STEPS. A follow-up MUST NOT run over a
-                # failed transaction: if the backup failed, the configs were
-                # never linked, and install_herdr_plugins would then let the
-                # radar plugin write its sidebar block into whatever detached
-                # config.toml is still live — the file we just failed to copy
-                # aside. The pre-split update_herdr got this for free by
-                # sharing one errexit subshell.
+                # The follow-ups take the failure count from before the
+                # transaction, so a failed backup stops them too.
                 failed_before=${#FAILED_STEPS[@]}
                 step "backup + $(targeted_overwriting_components)" \
                     run_targeted_config_components
-                if [ "${#FAILED_STEPS[@]}" -eq "$failed_before" ]; then
-                    run_targeted_followups
-                else
-                    warn "Skipping follow-up work: the config step above failed."
-                fi
+                run_targeted_followups "$failed_before"
             fi
             continue
         fi
@@ -1471,10 +1492,14 @@ main() {
     step "omp"                 install_omp
     step "herdr integrations"  configure_herdr_integrations
     step "macOS defaults"      configure_macos
+    local failed_before=${#FAILED_STEPS[@]}
     step "backup + configs"    backup_and_install_configs
-    # After backup + configs: config.toml (which binds the plugin actions) and
-    # the workspace-manager config symlink are in place first.
-    step "herdr plugins"       install_herdr_plugins
+    # Only after backup + configs succeeded: the herdr plugin installs need
+    # config.toml (which binds their actions) and the workspace-manager config
+    # symlink in place, and running them over a failed backup is the data path
+    # step_if_clean documents — the radar plugin would write into the live
+    # detached config.toml the backup just failed to copy aside.
+    step_if_clean "$failed_before" "herdr plugins" install_herdr_plugins
     step "git config"          configure_git
     step "default shell"       configure_zsh
     step "non-interactive PATH" configure_noninteractive_path
