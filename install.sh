@@ -259,9 +259,16 @@ component_help() {
 # names the registry does not know and dropping duplicates (so `--skills
 # --only skills` runs the component once).
 add_only_targets() {
-    local raw="$1" name entry known
+    local raw="$1" name entry known matched=false
 
+    # Unquoted on purpose, to split on both commas and whitespace, but with
+    # globbing off: an unquoted `$(…)` is pathname-expanded too, so `--only '*'`
+    # would otherwise expand against the working directory before any name is
+    # checked.
+    set -f
     for name in $(printf '%s' "$raw" | tr ',' ' '); do
+        set +f
+        matched=true
         known=false
         for entry in "${INSTALL_COMPONENTS[@]}"; do
             if [ "$name" = "${entry%%|*}" ]; then
@@ -274,6 +281,15 @@ add_only_targets() {
         fi
         target_requested "$name" || ONLY_TARGETS+=("$name")
     done
+    set +f
+
+    # An empty or comma-only value names no component, so the loop above never
+    # runs. Without this the run falls through `main`'s `((${#ONLY_TARGETS[@]}))`
+    # gate into the FULL bootstrap: macOS defaults, chsh, the Brewfile and
+    # link_file's rm -rf over live config, for a command that asked for nothing.
+    if [ "$matched" = false ]; then
+        error "--only got an empty component list. Run $0 --help for the list."
+    fi
 }
 
 target_requested() {
