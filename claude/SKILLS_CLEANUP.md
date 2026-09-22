@@ -412,6 +412,12 @@ exercised the new prune path for real: the old `~/.claude/skills/clear-explanati
 link dangled the moment the directory moved, and the next `--only skills` run
 removed it without being told about it.
 
+`explaining`'s description pointed at the old name ("use clear-explanations
+instead"), so the rename would have left a router naming a skill that no longer
+exists. Updated in the same pass. A directory rename has to sweep every
+description that routes to it: the dangling link the installer prunes
+automatically, a dangling pointer nothing catches.
+
 Six rules were added from a communication style guide the user supplied, then
 tested rather than argued about, per `writing-skills`: paired subagents on the
 same question, one given the skill as its writing instructions and one given
