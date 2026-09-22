@@ -403,3 +403,46 @@ So the same detour cannot cost anything twice:
   follow-up ahead of herdr's: it fails alone and herdr's still runs, while a
   failed transaction still blocks both. Latent for now, herdr being the only
   entry in the table, but the table is general.
+
+# `clear-explanations` renamed and tested — 2026-09-22
+
+Renamed to `explaining-clearly`, directory and frontmatter both, so the link
+`install.sh --skills` creates matches the name the skill answers to. The rename
+exercised the new prune path for real: the old `~/.claude/skills/clear-explanations`
+link dangled the moment the directory moved, and the next `--only skills` run
+removed it without being told about it.
+
+Six rules were added from a communication style guide the user supplied, then
+tested rather than argued about, per `writing-skills`: paired subagents on the
+same question, one given the skill as its writing instructions and one given
+nothing, graded mechanically. 15 runs over 6 scenarios.
+
+What the runs showed:
+
+- **Story shape**: 0/4 control, 4/4 treatment. **Em dashes**: 7, 22, 28 and 9 in
+  the control answers against 0 in every treatment answer. **Citation volume**:
+  0-8 control, 10-38 treatment (volume only; accuracy spot-checked on four
+  citations, all exact, which is not the same as verified).
+- **Reference codes** fired only on the question that asked for a list of risks
+  (8 codes) and stayed absent from the other five scenarios, which is the
+  conditional behaving. A later run invented `L1`-`L6` for a family the table
+  does not list, which is the "another family gets its own letter" line working.
+- **The false-premise rule was deleted as a no-op.** Three separate control
+  runs, on three different wrong premises, corrected the premise unprompted
+  ("It doesn't. `backup_existing` explicitly skips anything that is already a
+  symlink"). The first two tests were confounded by a grounding instruction in
+  the harness; a third with a neutral prompt behaved the same. A rule that does
+  not beat the default pays load to say nothing (`writing-for-agents:80`).
+- **Two loopholes closed by testing, not review.** The em-dash rule was
+  rescoped ("zero of your own", quotes keep their characters) after an answer
+  was marked non-compliant for quoting install.sh's own `warn` string. The
+  document rule banned "a bullet list of its headings", so an agent complied
+  literally and mirrored 5 of 8 source headings as its own section headers; it
+  now bans reusing the source's headings and order in any form, and the retest
+  mirrored 0 of 9 while moving the source's first section to fourth position.
+- **Unmeasured**: the filler-phrase list (0 hits in every arm, so no signal
+  either way) and the analogy clause (no scenario invited one). Both stay, both
+  unproven.
+- **Known miss**: one of the five treatment answers ended without the required
+  closing question. Wording looks sound; treating it as variance until a rerun
+  says otherwise.
