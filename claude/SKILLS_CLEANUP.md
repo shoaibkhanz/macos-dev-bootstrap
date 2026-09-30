@@ -3,48 +3,154 @@
 Trimmed the vendored skills in `claude/agents/skills/` down to two curated
 sources plus personal skills, and refreshed everything to the latest upstream.
 
-## Sources of truth
+## Updating skills (current procedure)
 
-| Collection | Repo |
-|---|---|
-| Superpowers (Jesse Vincent / obra) | https://github.com/obra/superpowers |
-| Matt Pocock — "Skills for Real Engineers" | https://github.com/mattpocock/skills |
+Everything in `claude/agents/skills/` is one of three kinds, and each updates
+differently. `./install.sh --skills` links all three into `~/.claude/skills/`
+and `~/.agents/skills`.
 
-Vendored (copied into this repo) rather than plugin-installed, to match the
-existing dotfiles pattern where `install.sh` symlinks each skill into
-`~/.claude/skills/` and `~/.agents/skills`.
+| Kind | How to tell | Source of truth | In git |
+|---|---|---|---|
+| **Vendored** | tracked, and present upstream | the two repos under "Pinned versions" | yes |
+| **Third-party** | listed in `.gitignore` | its entry in `~/.agents/.skill-lock.json` | no |
+| **Local** | tracked, no upstream: `explaining`, `explaining-clearly`, `authoring-longform-briefs`, `plannotator-*`; `code-hyperlearning` is a symlink to its own project | this repo | yes |
 
-## How to sync (current procedure)
+### Pinned versions
 
-**Do not run either upstream's installer here.** `npx skills@latest add
-mattpocock/skills` does not update the vendored tree: it writes a separate
-project-level install (`.agents/skills/` + `skills-lock.json` at the repo
-root), and pointed at `~/.claude/skills` it writes *through* this repo's
-symlinks. `/plugin install` has the same problem in the other direction — see
-"Plugin skills left unvendored". Instead:
+| Upstream | Last synced | What is vendored |
+|---|---|---|
+| https://github.com/mattpocock/skills | `d81f3a1` (v1.3, 2026-09-29) | `skills/engineering/`, `productivity/`, `misc/`, every skill in each |
+| https://github.com/obra/superpowers | `8ca22db` (v6.4.2, 2026-09-25) | `skills/`, every skill |
+
+Update this table on every sync; the next sync starts from it. Third-party
+versions are not tracked here: the lock file records each one's source and
+installed folder hash.
+
+### Never
+
+- **`npx skills update`.** The lock still carries stale entries for 28 names
+  this repo now vendors (old Matt Pocock and superpowers installs, some under
+  retired names like `caveman`, `to-prd`), and it credits `code-review` to a
+  different author (`supercent-io/skills-template`). A global update writes
+  through the `~/.agents/skills` symlink over the vendored copies.
+- **`npx skills add` for mattpocock/skills or obra/superpowers**, globally or
+  not, for the same reason. **Any `npx skills add` from the repo root**: it
+  writes a project-level `.agents/skills/` + `skills-lock.json` here instead.
+- **`rsync --delete` at the `claude/agents/skills/` root.** It deletes the
+  local skills and writes through the `code-hyperlearning` symlink into another
+  project. Always copy per skill name.
+- **`git add -A`.** Third-party skills can land in the tree before
+  `.gitignore` knows their names; `-A` commits them (`find-skills`,
+  2026-09-30). Stage by name.
+
+### Vendored skills
+
+Run from the repo root. Shown for Matt Pocock; for superpowers use
+`https://github.com/obra/superpowers`, its sha, and `skills/*` in place of the
+three buckets.
 
 ```sh
-# Deep enough to compute the delta: --depth 1 has no history, and the commit
-# range below is what surfaces renames, demotions and graduations that a
-# file-level diff reads as ordinary edits.
-git clone --depth 50 https://github.com/mattpocock/skills /tmp/mp-skills
+S=claude/agents/skills
+OLD=d81f3a1                      # from "Pinned versions"
+git clone --depth 50 https://github.com/mattpocock/skills /tmp/mp
 
-# Review the delta since the sha recorded in the last sync section below.
-git -C /tmp/mp-skills log --oneline <last-vendored-sha>..HEAD
-git -C /tmp/mp-skills diff --name-status <last-vendored-sha>..HEAD
+# 1. Read the delta. Read the log as well as the diff: renames, graduations
+#    and demotions show up in commit messages, and the 2026-09-16 check found
+#    upstream's misc/ demotion (8666e05) only there.
+git -C /tmp/mp log --oneline $OLD..HEAD
+git -C /tmp/mp diff --name-status $OLD..HEAD -- skills/
 
-# Then copy only the buckets we vendor (NOT in-progress/, deprecated/, personal/).
-diff -rq claude/agents/skills/<name> /tmp/mp-skills/skills/<bucket>/<name>
-rsync -a --delete /tmp/mp-skills/skills/<bucket>/<name>/ claude/agents/skills/<name>/
+# 2. Refuse to overwrite local edits: our copy must equal upstream at OLD.
+#    Any output here is a local change to carry over by hand, not to rsync over.
+git -C /tmp/mp worktree add /tmp/mp-old $OLD
+for s in /tmp/mp-old/skills/{engineering,productivity,misc}/*; do
+  [ -d "$s" ] || continue
+  diff -rq "$S/$(basename "$s")" "$s" >/dev/null || echo "LOCAL EDITS: $(basename "$s")"
+done
 
-./install.sh --skills   # re-link, and prune links for renamed/dropped skills
+# 3. Copy per skill, vendored buckets only (never in-progress/, deprecated/,
+#    personal/). The -d guard skips each bucket's README.md.
+for s in /tmp/mp/skills/{engineering,productivity,misc}/*; do
+  [ -d "$s" ] || continue
+  rsync -a --delete "$s/" "$S/$(basename "$s")/"
+done
 ```
 
-Then add a dated sync section to the end of this file: the new upstream sha,
-what moved, what was deliberately not taken, and why. Reading `log` and not
-just `diff` is load-bearing — the 2026-09-16 check found upstream's `misc/`
-demotion (`8666e05`) only in the commit list, since it changed a script this
-repo does not vendor.
+4. **Act on what the log showed.** Deleted upstream: `git rm -r $S/<name>`.
+   Renamed: `git rm -r` the old name (step 3 already added the new one).
+   Graduated out of `in-progress/`: taken, since the standing policy is to wait
+   for graduation and no longer.
+5. **Verify**: rerun the step 3 loop with `diff -rq` in place of `rsync`, and
+   expect no output.
+6. **Sweep references** to any removed or renamed name outside the vendored
+   skills themselves, since a skill description that routes to a dead name
+   fails silently: `grep -rn '<old-name>' claude/ README.md`. Hits in dated
+   sections of this file are history; leave them.
+7. `./install.sh --skills`. It links new skills and prunes links to removed
+   ones. Then check for dangling links:
+   `for l in ~/.claude/skills/*; do [ -L "$l" ] && [ ! -e "$l" ] && echo "$l"; done`
+8. **Stage by name**: `git add -u $S`, then `git add $S/<new-name>` for each new
+   skill. `git status --short --untracked-files=all claude/` should show no
+   `??` lines.
+9. Update "Pinned versions", append a dated section to the end of this file
+   (old → new sha; added, removed, renamed; what was deliberately not taken,
+   and why), commit, push.
+
+### Third-party skills
+
+Gitignored, so an update changes this machine only; on another machine,
+reinstall with the `npx skills add <source>` recorded in the lock. List what is
+installed from where:
+
+```sh
+S=claude/agents/skills
+src() { python3 -c 'import json,os,sys; e=json.load(open(os.path.expanduser("~/.agents/.skill-lock.json")))["skills"].get(sys.argv[1],{}); print(e.get(sys.argv[2],"NOT IN LOCK"))' "$1" "$2"; }
+for n in $(sed -n 's|^claude/agents/skills/\(.*\)/$|\1|p' .gitignore); do
+  printf '%-30s %s\n' "$(src $n source)" "$n"
+done | sort
+```
+
+Then, for one source at a time (example: Hamel Husain's eval skills,
+`ai-evals-course/evals-skills`):
+
+```sh
+git clone https://github.com/ai-evals-course/evals-skills /tmp/src
+git -C /tmp/src log --oneline --since=<updatedAt date from the lock>
+
+# 1. Local-edit check. The lock's skillFolderHash is the git tree hash of the
+#    skill folder, so hashing ours and comparing is exact. "LOCAL EDITS" means
+#    carry the change over by hand.
+git init -q /tmp/th
+th() { rm -f /tmp/th/idx; GIT_INDEX_FILE=/tmp/th/idx git -C /tmp/th --work-tree="$PWD/$S/$1" add -A . && GIT_INDEX_FILE=/tmp/th/idx git -C /tmp/th write-tree; }
+for n in eval-audit write-judge-prompt; do       # this source's skills
+  [ "$(th $n)" = "$(src $n skillFolderHash)" ] && echo "clean: $n" || echo "LOCAL EDITS: $n"
+done
+
+# 2. Copy per skill, from the path the lock records (usually skills/<name>).
+rsync -a --delete /tmp/src/skills/<name>/ $S/<name>/
+```
+
+3. **Renamed or new upstream** (`start` became `evals-start` on 2026-09-30):
+   delete the old folder, copy the new one, and swap the name in the
+   `.gitignore` block, keeping it sorted.
+4. **Record it in the lock**, so a later `npx skills add` of the same source
+   sees what is on disk. For each skill of the source: `skillPath`, and
+   `skillFolderHash` set to `git -C /tmp/src rev-parse HEAD:skills/<name>`;
+   drop entries for names upstream removed. Back the lock up first.
+5. `./install.sh --skills`; the dangling-link check and the no-`??` check from
+   the vendored steps both apply. Commit only `.gitignore` and this file.
+
+`npx skills add <source-url>` from `$HOME` is the one-command alternative for a
+single third-party source, and is how these were installed. Afterwards, add any
+new names to `.gitignore` and run `./install.sh --skills`.
+
+### Local skills
+
+No upstream: edit in place, then `./install.sh --skills`. **Renaming one** is
+`git mv` of the folder plus the frontmatter `name:`, and then the step 6 sweep:
+`explaining`'s description routed to `clear-explanations` for a commit after
+that rename (2026-09-22). `install.sh` prunes the old link by itself; nothing
+catches the old name inside another skill's text.
 
 ## Result: 40 skills (was 57)
 
