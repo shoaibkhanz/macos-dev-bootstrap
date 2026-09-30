@@ -494,9 +494,27 @@ CONTEXT.md GLOSSARY.md`) in each such repo. None of this repo's own files
 depended on the old name; the hits outside vendored skills are dated entries in
 this log.
 
-The ~20 plugin-installed skills (`logfire-*`, `pydantic*`, `fastapi-*` and the
-rest listed under 2026-09-01) are gitignored and not part of this sync: their
-source of truth is `/plugin`, not this repo.
+**The ~20 gitignored third-party skills are `npx skills` installs, not Claude
+plugins.** The 2026-09-01 entry and the `.gitignore` comment both credited
+`/plugin install`; `~/.claude/plugins/installed_plugins.json` lists none of
+them. `~/.agents/.skill-lock.json` does, with a source repo and folder hash for
+each. A global `npx skills add` writes to `~/.agents/skills`, which is a
+symlink to this tree, which is how they land here. The `.gitignore` comment now
+says so.
+
+Hamel Husain's eval skills (`ai-evals-course/evals-skills`, installed
+2026-08-28 at `8c024ba`) were synced to `80d5f7b` (2026-09-24) the same way as
+the vendored sets, per skill from a scratch clone, after confirming none had
+local edits against the installed commit. Upstream renamed `start` to
+`evals-start` (`10764ad`) and added `write-code-eval` (`f7dad12`); the ignore
+list and the lock file were updated to match, and `--skills` pruned the `start`
+link. Nothing about these skills is committed, since they stay gitignored.
+
+Not run: `npx skills update`. The lock still carries stale entries for
+mattpocock/skills (14, under old names such as `caveman`, `diagnose`, `to-prd`)
+and obra/superpowers (14) from before they were vendored. A global update
+would reinstall those through the symlink into this tree, over the vendored
+copies. Update a third-party source by name, or per skill as above.
 
 `find-skills` was swept into the sync commit by a `git add -A` and untracked
 again in the next one. It is the third-party skill-discovery skill the
