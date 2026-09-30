@@ -452,3 +452,44 @@ What the runs showed:
 - **Known miss**: one of the five treatment answers ended without the required
   closing question. Wording looks sound; treating it as variance until a rerun
   says otherwise.
+
+# Skills sync — 2026-09-30
+
+| Collection | Previous | Now |
+|---|---|---|
+| mattpocock/skills | `959a8e9` (v1.2.3 + 44) | `d81f3a1` (v1.3, 2026-09-29) |
+| obra/superpowers | `b36e082` (v6.3.0) | `8ca22db` (v6.4.2, 2026-09-25) |
+
+Every vendored skill was checked against its copy at the *previous* sha first:
+none carried a local edit, so the `rsync -a --delete` below could not overwrite
+anything of ours. Afterwards all 31 Matt Pocock and 15 superpowers skills are
+byte-identical to upstream HEAD.
+
+**Updated (18):** `ask-matt`, `codebase-design`, `diagnosing-bugs`,
+`domain-modeling`, `improve-codebase-architecture`, `setup-matt-pocock-skills`,
+`tdd`, `triage`, `wait-what`; superpowers `brainstorming`, `executing-plans`,
+`requesting-code-review`, `subagent-driven-development`, `systematic-debugging`,
+`test-driven-development`, `using-superpowers`, `writing-plans`,
+`writing-skills`.
+
+**Added (4):** `implement-spec`, `pr` and `retro` graduated from `in-progress/`
+to `engineering/` (`24f41cc`, `a7d038f`); superpowers added
+`diagnosing-superpowers` in v6.4.1. Taken without asking because the vendoring
+policy is whole-bucket, not curated: at the previous shas every skill in
+`engineering/`, `productivity/`, `misc/` and superpowers was vendored. This is
+also how `retro`, declined earlier as an in-progress skill, arrives now.
+
+**Removed (1):** `resolving-merge-conflicts`, deleted upstream (`daa01d8`).
+`./install.sh --skills` pruned its `~/.claude/skills` link on its own.
+
+**Upstream convention change to know about:** `CONTEXT.md` / `CONTEXT-MAP.md`
+are now `GLOSSARY.md` / `GLOSSARY-MAP.md` (`d80fa0f`, `e484a80`), and
+`domain-modeling/CONTEXT-FORMAT.md` became `GLOSSARY-FORMAT.md`. The updated
+skills look for the new names, so a repo that already has a `CONTEXT.md` from
+the old convention needs it renamed to be found. None of this repo's own files
+depended on the old name; the hits outside vendored skills are dated entries in
+this log.
+
+The ~20 plugin-installed skills (`logfire-*`, `pydantic*`, `fastapi-*` and the
+rest listed under 2026-09-01) are gitignored and not part of this sync: their
+source of truth is `/plugin`, not this repo.
