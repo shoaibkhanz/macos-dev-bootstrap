@@ -60,6 +60,7 @@ claude/agents/skills/eval-audit/
 claude/agents/skills/evaluate-rag/
 claude/agents/skills/fastapi-python/
 claude/agents/skills/fastapi-templates/
+claude/agents/skills/find-skills/
 claude/agents/skills/frontend-design/
 claude/agents/skills/generate-synthetic-data/
 claude/agents/skills/logfire-instrumentation/

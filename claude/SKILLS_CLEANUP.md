@@ -474,10 +474,11 @@ byte-identical to upstream HEAD.
 
 **Added (4):** `implement-spec`, `pr` and `retro` graduated from `in-progress/`
 to `engineering/` (`24f41cc`, `a7d038f`); superpowers added
-`diagnosing-superpowers` in v6.4.1. Taken without asking because the vendoring
-policy is whole-bucket, not curated: at the previous shas every skill in
-`engineering/`, `productivity/`, `misc/` and superpowers was vendored. This is
-also how `retro`, declined earlier as an in-progress skill, arrives now.
+`diagnosing-superpowers` in v6.4.1. Taken without asking because the repo had
+already decided both: the 2026-09-16 check skipped `in-progress/` "per the
+standing policy of waiting for graduation", and these three have now graduated;
+superpowers is vendored as its full current set. This is how `retro`, declined
+earlier as an in-progress skill, arrives now.
 
 **Removed (1):** `resolving-merge-conflicts`, deleted upstream (`daa01d8`).
 `./install.sh --skills` pruned its `~/.claude/skills` link on its own.
@@ -485,11 +486,21 @@ also how `retro`, declined earlier as an in-progress skill, arrives now.
 **Upstream convention change to know about:** `CONTEXT.md` / `CONTEXT-MAP.md`
 are now `GLOSSARY.md` / `GLOSSARY-MAP.md` (`d80fa0f`, `e484a80`), and
 `domain-modeling/CONTEXT-FORMAT.md` became `GLOSSARY-FORMAT.md`. The updated
-skills look for the new names, so a repo that already has a `CONTEXT.md` from
-the old convention needs it renamed to be found. None of this repo's own files
+skills look for the new names only, with no fallback: none of them mentions
+`CONTEXT.md` any more. A repo with a `CONTEXT.md` from the old convention is
+therefore not read at all, and the first resolved term makes `domain-modeling`
+create a second, empty `GLOSSARY.md` beside it. Rename the old file (`git mv
+CONTEXT.md GLOSSARY.md`) in each such repo. None of this repo's own files
 depended on the old name; the hits outside vendored skills are dated entries in
 this log.
 
 The ~20 plugin-installed skills (`logfire-*`, `pydantic*`, `fastapi-*` and the
 rest listed under 2026-09-01) are gitignored and not part of this sync: their
 source of truth is `/plugin`, not this repo.
+
+`find-skills` was swept into the sync commit by a `git add -A` and untracked
+again in the next one. It is the third-party skill-discovery skill the
+2026-07-04 pass deleted, back on disk since 2026-09-26 and missing from the
+`.gitignore` plugin list, so it showed as untracked rather than ignored. It is
+now on that list with the rest. Stage a sync by skill name, not with `-A`: the
+tree can hold third-party arrivals the ignore list has not caught up with.
