@@ -13,7 +13,7 @@ and `~/.agents/skills`.
 |---|---|---|---|
 | **Vendored** | tracked, and present upstream | the two repos under "Pinned versions" | yes |
 | **Third-party** | listed in `.gitignore` | its entry in `~/.agents/.skill-lock.json` | no |
-| **Local** | tracked, no upstream: `explaining`, `explaining-clearly`, `authoring-longform-briefs`, `plannotator-*`; `code-hyperlearning` is a symlink to its own project | this repo | yes |
+| **Local** | tracked, no upstream: `explaining`, `explaining-clearly`, `explaining-clearly-video`, `authoring-longform-briefs`, `plannotator-*`; `code-hyperlearning` is a symlink to its own project | this repo | yes |
 
 ### Pinned versions
 
@@ -628,3 +628,90 @@ again in the next one. It is the third-party skill-discovery skill the
 `.gitignore` plugin list, so it showed as untracked rather than ignored. It is
 now on that list with the rest. Stage a sync by skill name, not with `-A`: the
 tree can hold third-party arrivals the ignore list has not caught up with.
+
+# Local skill added: `explaining-clearly-video` — 2026-10-04
+
+A copy of `explaining-clearly` that delivers the story as a narrated Manim
+video (ElevenLabs `eleven_v4_turbo`, or macOS `say` without a key). A copy and
+not a pointer, so it can be tested and changed without touching the chat skill.
+What carried over: the story shape (one scene per part), receipts, mechanism,
+the growing diagram, the voice, and the library/example/document cases.
+Reference codes and the yes/no and didn't-land cases did not carry over,
+because they are about chat turns.
+
+Written from a baseline: two agents made the same video (how `install.sh`
+stops a failed backup overwriting live config) with no skill, then two more
+with it.
+
+| | No skill (2) | With skill (2) |
+|---|---|---|
+| Narration audible in every scene | 1 of 2 | 2 of 2 |
+| `--disable_caching` on every render | 1 of 2 | 2 of 2 |
+| Code drawn with `Code` (indentation kept) | 0 of 2 | 2 of 2 |
+| On-screen `file:line` captions | 0, 0 | 4, 6, every one exact |
+| Audio measured before claiming success | 0 of 2 | 2 of 2, with numbers |
+| Closing question in the delivery message | 0 of 2 | 2 of 2 |
+
+The failure that drove the skill: **a warm-cache Manim re-render silently drops
+`add_sound` clips.** One baseline re-rendered after a layout fix and shipped
+two of its five narration scenes at -91 dB while reporting the narration as
+synced. Reproduced in isolation: cold render, all three clips audible; warm
+re-render of the same scene, a 50.3 s video with 17.6 s of audio. The skill's
+verify step pairs two checks, since each catches one way a clip drops and
+neither catches both (audio stream at least the sum of the clips for trailing
+drops; `silencedetect` for mid-video ones). Both were run against all four
+files: each failing file fails exactly one check.
+
+What the baseline already did, so the skill does not push it: timing each scene
+to its own clip (both agents, unprompted), and checking stills for overlaps.
+
+**Rejected: `manim-voiceover`.** The official plugin's `tracker.duration` works
+with Manim 0.21 and `eleven_v4_turbo` (5.27 s of video against 5.23 s of
+audio). But it reads `ELEVEN_API_KEY` rather than `ELEVENLABS_API_KEY`, and
+without it stops at an `input()` prompt that writes the typed key into a plain
+`.env` in the working directory. Under an agent that is a hang or a crash.
+It is also a new dependency for timing both agents already got right in ten
+lines.
+
+Unmeasured: the narration voice and the "If the story involves" cases (the
+scenario exercised neither). n=2 per arm; the cache drop was 1 of 2 in the
+baseline, so the 2 of 2 with the skill is partly the verify step and partly
+chance.
+
+Fresh-machine gap: Manim is a `uv tool` install (`uv tool install manim`), and
+its LaTeX comes from a TeX Live outside Homebrew. `Brewfile` has neither;
+`tectonic` there cannot stand in, since Manim calls `latex` and `dvisvgm`.
+Voicebox 0.5.0 is not a Homebrew cask either: it was installed from the
+notarized `Voicebox_0.5.0_aarch64.dmg` on `jamiepine/voicebox` releases.
+
+**Narration moved to Voicebox after the test runs above, which used
+ElevenLabs.** Voicebox runs TTS locally behind a REST API, so there is no key
+to leak, no per-character cost, and nothing leaves the machine. The user picked
+the Kokoro preset `bf_isabella` (calm, British) by ear from all eight British
+Kokoro presets reading the same line. It replaces ElevenLabs outright rather
+than sitting beside it, since one voice path is less for an agent to choose
+between. It passed the same bar that rejected `manim-voiceover`: everything
+runs without a person. `voicebox-server` inside the app bundle serves without
+the GUI, and the model download, profile creation and generation are all REST
+calls. Smoke-tested end to end, starting from a stopped server: two clips (one
+with quotes and an apostrophe, which `jq` escapes) into a two-scene render gave
+10.3 s of audio against 9.9 s of clips, with no silence. A cold server start
+takes about 20 s. Two things the API does that the skill depends on:
+`/generate` returns a job id, not audio, so the snippet polls
+`/generate/<id>/status` (an event stream) and then fetches `/audio/<id>`; and
+quitting the GUI with `osascript` left its server child holding port 17493,
+so a second server can sit behind it unbound.
+
+**Rejected: the community Manim skills** (`npx skills find manim`, about 20
+results). Only `affaan-m/ecc@manim-video` passes 1K installs (8.1K): generic
+scene advice plus a network-graph starter that points at other ECC skills.
+`nousresearch/hermes-agent@manim-video` (copied in `browser-use/video-use`) is
+the most thorough, but it recommends `manim-voiceover`, rejected above. Either
+one would trigger on the same requests as this skill and give conflicting
+narration advice.
+
+Reconsidered and dropped: making `scene_start` raise when a scene's animations
+run past its clip. The premise was two clips overlapping. But the helper only
+returns after the animations finish, so the next `add_sound` always starts
+after this clip has ended. An overrun leaves silence, which `silencedetect`
+already catches at 2 s or more.
