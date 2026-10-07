@@ -216,6 +216,8 @@ def sync_third_party(tmp):
     if added:
         print(f"\n== .gitignore: newly installed, now ignored ({len(added)}): "
               + ", ".join(added))
+        if not CHECK:   # staged, or the next run sees it present and it never lands
+            git("add", ".gitignore", cwd=REPO)
     by_source = {}
     for n in names:
         by_source.setdefault(lock["skills"][n]["sourceUrl"], []).append(n)
@@ -239,20 +241,31 @@ def sync_third_party(tmp):
                 notes.append(f"NOT INSTALLED {n}: in the lock but not on disk. "
                              f"`npx skills add {e['source']}` from $HOME to reinstall.")
                 continue
-            if tree_hash(os.path.join(SKILLS, n)) != e["skillFolderHash"]:
+            mine = tree_hash(os.path.join(SKILLS, n))
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat(
+                timespec="milliseconds").replace("+00:00", "Z")
+            if mine == new:
+                # Already upstream's current folder, e.g. taken by hand after a
+                # LOCAL EDITS note. Record it, or it re-flags on every run.
+                print(f"   recorded (already current): {n}")
+            elif mine != e["skillFolderHash"]:
                 notes.append(f"LOCAL EDITS {n}: differs from the lock's hash. Not overwritten.")
                 continue
-            print(f"   updated: {n}")
-            copy(os.path.join(clone, folder), n)
-            e["skillFolderHash"] = new
-            e["updatedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat(
-                timespec="milliseconds").replace("+00:00", "Z")
+            else:
+                print(f"   updated: {n}")
+                copy(os.path.join(clone, folder), n)
+            e["skillFolderHash"], e["updatedAt"] = new, now
             dirty = True
 
     if dirty and not CHECK:
-        shutil.copy(LOCK, LOCK + ".bak")
-        with open(LOCK, "w") as f:
+        # The lock lives outside git, so the backup is the only way back; one
+        # per write, so a bad run cannot overwrite the last good copy. Written
+        # to a temp file and renamed, so a crash cannot leave half a lock.
+        stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        shutil.copy(LOCK, f"{LOCK}.bak-{stamp}")
+        with open(LOCK + ".tmp", "w") as f:
             json.dump(lock, f, indent=2)
+        os.replace(LOCK + ".tmp", LOCK)
 
 
 def main():

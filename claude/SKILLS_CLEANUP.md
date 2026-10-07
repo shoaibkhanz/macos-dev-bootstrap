@@ -58,7 +58,7 @@ three buckets.
 
 ```sh
 S=claude/agents/skills
-OLD=d81f3a1                      # from "Pinned versions"
+OLD=<sha>                        # from "Pinned versions"; never hard-code it here
 git clone --depth 50 https://github.com/mattpocock/skills /tmp/mp
 
 # 1. Read the delta. Read the log as well as the diff: renames, graduations
@@ -779,7 +779,13 @@ installs without being told about them.
   against `rev-parse <pin>:<dir>` for vendored skills and the lock's
   `skillFolderHash` for third-party ones. A copy equal to upstream HEAD counts
   as current, so a skill taken by hand, or added on an earlier run, is not
-  flagged again.
+  flagged again; for a third-party skill the lock is advanced to record it.
+  (Missed in `e2f1dd0`, where a third-party skill taken by hand re-flagged on
+  every run; fixed and tested the same day with an edit, a hand-merge and a
+  quiet rerun.)
+- **The lock** is backed up beside itself as `.skill-lock.json.bak-<time>` on
+  every write, so a bad run cannot overwrite the last good copy, and is written
+  to a temp file then renamed, so a crash cannot leave half of it.
 - **The pin holds while any skill of that upstream is skipped.** The pin is
   the baseline for the next run's local-edit test and commit list, so moving it
   past a skipped skill would hide the upstream change it missed for good.
