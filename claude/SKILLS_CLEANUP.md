@@ -736,8 +736,16 @@ way every run and reports the path), `implement` (calls the Skill tool for
 `tdd` and `code-review`; fetches a passed ticket and states its title),
 `setup-matt-pocock-skills` (creates triage labels; external PRs via the REST
 pulls endpoint), `tdd` (says what each proposed seam catches and misses),
-`teach`, `to-tickets` (attaches tickets to their parent as sub-issues),
-`wayfinder`, and `wizard/template.sh` (readline, `.env` quoting, symlinks).
+`teach` (anchors workspace paths, varies where the right quiz answer sits),
+`to-tickets` (attaches tickets to their parent as sub-issues), `wayfinder` (no
+triage labels, placeholder refs or research PRs), and `wizard/template.sh`
+(readline, `.env` quoting, symlinks).
+
+Version note: `v1.3.1` (`24fe0ef`, 2026-10-04) is upstream's latest release
+tag. `f3fc563` is 43 commits past it, with its fixes still queued as
+unreleased changesets (the next tag). Vendoring HEAD rather than the tag
+matches every earlier sync (`959a8e9` was v1.2.3 + 44). `retro`, vendored on
+2026-09-30, is unchanged since and byte-identical to upstream.
 
 **Not taken: `chief-of-staff`**, upstream's one new skill. It sits in
 `in-progress/` and is marked experimental: five commits on 2026-10-05 and
