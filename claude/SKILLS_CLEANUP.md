@@ -19,7 +19,7 @@ and `~/.agents/skills`.
 
 | Upstream | Last synced | What is vendored |
 |---|---|---|
-| https://github.com/mattpocock/skills | `d81f3a1` (v1.3, 2026-09-29) | `skills/engineering/`, `productivity/`, `misc/`, every skill in each |
+| https://github.com/mattpocock/skills | `f3fc563` (v1.3.1 + 43, 2026-10-07) | `skills/engineering/`, `productivity/`, `misc/`, every skill in each |
 | https://github.com/obra/superpowers | `8ca22db` (v6.4.2, 2026-09-25) | `skills/`, every skill |
 
 Update this table on every sync; the next sync starts from it. Third-party
@@ -715,3 +715,33 @@ run past its clip. The premise was two clips overlapping. But the helper only
 returns after the animations finish, so the next `add_sound` always starts
 after this clip has ended. An overrun leaves silence, which `silencedetect`
 already catches at 2 s or more.
+
+# Skills sync — 2026-10-07
+
+| Collection | Previous | Now |
+|---|---|---|
+| mattpocock/skills | `d81f3a1` (v1.3) | `f3fc563` (v1.3.1 + 43) |
+
+Matt Pocock only; superpowers was not checked this time. No vendored skill
+carried a local edit at `d81f3a1`, and afterwards all 31 are byte-identical to
+upstream HEAD. Nothing was added, removed or renamed in the vendored buckets,
+so no reference sweep was needed.
+
+**Updated (15 files, 13 skills):** `ask-matt` (reads a skill's `SKILL.md`
+before asserting or skipping its steps), `code-review` (searches for standards
+files, keeps sub-agents in the foreground), `diagnosing-bugs` (proves a forced
+mutation landed before trusting a red test), `grilling` (questions worded so
+"yes" accepts the recommendation), `handoff` (resolves the temp dir the same
+way every run and reports the path), `implement` (calls the Skill tool for
+`tdd` and `code-review`; fetches a passed ticket and states its title),
+`setup-matt-pocock-skills` (creates triage labels; external PRs via the REST
+pulls endpoint), `tdd` (says what each proposed seam catches and misses),
+`teach`, `to-tickets` (attaches tickets to their parent as sub-issues),
+`wayfinder`, and `wizard/template.sh` (readline, `.env` quoting, symlinks).
+
+**Not taken: `chief-of-staff`**, upstream's one new skill. It sits in
+`in-progress/` and is marked experimental: five commits on 2026-10-05 and
+2026-10-06, still changing daily. The standing policy is to take a skill once it
+graduates to a vendored bucket, which is how `retro` arrived on 2026-09-30.
+It is user-invoked only (`disable-model-invocation: true`): it runs one long
+session as a co-ordinator that does all work in background subagents.
