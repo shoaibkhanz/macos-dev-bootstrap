@@ -990,9 +990,9 @@ install_marimo_config() {
 # `npx skills@latest add …` is NOT the way to refresh these. It writes a
 # separate project-level install (.agents/skills/ + skills-lock.json at the
 # repo root) and leaves the vendored tree alone; run it against
-# ~/.claude/skills and it writes through these symlinks into the repo. Sync
-# upstream into claude/agents/skills/ from a scratch clone instead, then re-run
-# `./install.sh --skills`. See claude/SKILLS_CLEANUP.md.
+# ~/.claude/skills and it writes through these symlinks into the repo. Update with
+# claude/update-skills.py (or /update-skills) instead; it re-runs
+# `./install.sh --skills` itself. See claude/SKILLS_CLEANUP.md.
 link_agent_skills() {
     local skill name link target
 

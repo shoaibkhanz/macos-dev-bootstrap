@@ -9,10 +9,17 @@ Everything in `claude/agents/skills/` is one of three kinds, and each updates
 differently. `./install.sh --skills` links all three into `~/.claude/skills/`
 and `~/.agents/skills`.
 
+**To update everything, run `/update-skills`** in Claude Code, or
+`claude/update-skills.py` directly (`--check` previews and writes nothing). It
+does the vendored and third-party steps below for both upstreams and for every
+`npx skills` / skills.sh install, finds newly installed skills by itself, and
+stops only at what needs a person: a local edit, a name clash, a skill gone
+upstream. The manual steps below are what it automates, kept for those cases.
+
 | Kind | How to tell | Source of truth | In git |
 |---|---|---|---|
 | **Vendored** | tracked, and present upstream | the two repos under "Pinned versions" | yes |
-| **Third-party** | listed in `.gitignore` | its entry in `~/.agents/.skill-lock.json` | no |
+| **Third-party** | untracked, and recorded in `~/.agents/.skill-lock.json`; `.gitignore` lists each (the updater adds new ones) | its lock entry | no |
 | **Local** | tracked, no upstream: `explaining`, `explaining-clearly`, `explaining-clearly-video`, `authoring-longform-briefs`, `plannotator-*`; `code-hyperlearning` is a symlink to its own project | this repo | yes |
 
 ### Pinned versions
@@ -141,8 +148,9 @@ rsync -a --delete /tmp/src/skills/<name>/ $S/<name>/
    the vendored steps both apply. Commit only `.gitignore` and this file.
 
 `npx skills add <source-url>` from `$HOME` is the one-command alternative for a
-single third-party source, and is how these were installed. Afterwards, add any
-new names to `.gitignore` and run `./install.sh --skills`.
+single third-party source, and is how these were installed. The next
+`/update-skills` adds its names to `.gitignore`, links them and keeps them
+updated from then on.
 
 ### Local skills
 
@@ -753,3 +761,51 @@ matches every earlier sync (`959a8e9` was v1.2.3 + 44). `retro`, vendored on
 graduates to a vendored bucket, which is how `retro` arrived on 2026-09-30.
 It is user-invoked only (`disable-model-invocation: true`): it runs one long
 session as a co-ordinator that does all work in background subagents.
+
+# Updater added: `/update-skills` — 2026-10-07
+
+`claude/update-skills.py` scripts the procedure above, and the
+`/update-skills` command (`claude/commands/update-skills.md`) wraps it with the
+parts that need judgement: the hand-merges it flags, this log, the commit. The
+user asked for one command that updates every skill and picks up future
+installs without being told about them.
+
+- **Third-party skills are discovered, not listed.** Every folder that the
+  lock records and git does not track. Tracked names are excluded whatever the
+  lock says, which keeps out its 28 stale entries for vendored skills. Each
+  newly found name is added to the sorted `.gitignore` block, so a fresh
+  install cannot be committed by a broad `git add`.
+- **One local-edit test for both kinds**: the git tree hash of our folder,
+  against `rev-parse <pin>:<dir>` for vendored skills and the lock's
+  `skillFolderHash` for third-party ones. A copy equal to upstream HEAD counts
+  as current, so a skill taken by hand, or added on an earlier run, is not
+  flagged again.
+- **The pin holds while any skill of that upstream is skipped.** The pin is
+  the baseline for the next run's local-edit test and commit list, so moving it
+  past a skipped skill would hide the upstream change it missed for good.
+  Everything else still updates; re-copying it next run is a no-op.
+- New skills in `in-progress/` are listed and not taken (graduation policy).
+  Renames arrive as removed + added, and every remaining reference to a removed
+  name is printed.
+
+**Verified in a throwaway clone.** Vendored skills were rewound to before the
+2026-09-30 sync, with the old pins `959a8e9` and `b36e082`. The third-party
+skills were copied in with a copy of the lock under a fake `$HOME`, and
+`install.sh` was stubbed out. `find-skills` was dropped from `.gitignore` to
+act as a new install, and `grilling` was edited locally. The first run
+reproduced both manual syncs: the same 4 added (`implement-spec`, `pr`,
+`retro`, `diagnosing-superpowers`), `resolving-merge-conflicts` removed,
+`chief-of-staff` held back. It skipped `grilling` and held Matt Pocock's pin,
+put `find-skills` back into `.gitignore` byte-identical to the real file, and
+updated 4 third-party skills, with the lock backed up. After taking upstream's
+`grilling`, run 2 moved the pin and flagged nothing; run 3 was up to date. The
+result was byte-identical to this repo's vendored skills, with no untracked
+files. Two bugs found that way and fixed first: the pin moving past a skipped
+skill, and skills added on an earlier run being flagged as clashes on a rerun.
+
+**Run for real**: vendored already current; third-party `frontend-design`
+(anthropics/skills) and `building-pydantic-ai-agents`,
+`logfire-instrumentation`, `pydantic` (pydantic/skills) updated, lock backed up
+to `~/.agents/.skill-lock.json.bak`. It also flagged an empty, untracked
+folder named `README.md` in `claude/agents/skills/`, made at the 2026-09-30
+sync by a copy loop that treated upstream's bucket README as a skill. Removed.
