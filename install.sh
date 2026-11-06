@@ -185,8 +185,7 @@ link_herdr_configs() {
 # ~/.config/herdr-app. Link only what we author: keys.json, the theme, and the
 # nav-keys mod's two source files. NOT the mod directory — herdr-app writes
 # gpui-kit.d.ts and jsconfig.json into every mod folder, which would land in
-# this repo. settings.json is left alone too: the app rewrites it from its
-# settings screen. No "installed" step is needed beyond the links — mods hot
+# this repo. No "installed" step is needed beyond the links — mods hot
 # reload — except nav-keys' 1px resident window, which has to be opened once
 # (herdr-app remembers it via `keep`) and must NOT be re-run blindly:
 # `mod.open` toggles.
@@ -194,6 +193,14 @@ link_herdr_app_configs() {
     local app="$HOME/.config/herdr-app"
     link_file "$SCRIPT_DIR/herdr-app/keys.json" "$app/keys.json"
     link_file "$SCRIPT_DIR/herdr-app/themes/yugen-true.json" "$app/themes/yugen-true.json"
+    # settings.json is what selects the theme, but herdr-app rewrites it from its
+    # settings screen, so seed it once instead of linking (a link could detach,
+    # and overwriting would clobber the machine's own zoom/sound prefs).
+    if [ ! -e "$app/settings.json" ]; then
+        run mkdir -p "$app"
+        run cp "$SCRIPT_DIR/herdr-app/settings.json" "$app/settings.json"
+        success "Seeded: $app/settings.json"
+    fi
     link_file "$SCRIPT_DIR/herdr-app/mods/nav-keys/main.js" "$app/mods/nav-keys/main.js"
     link_file "$SCRIPT_DIR/herdr-app/mods/nav-keys/mod.json" "$app/mods/nav-keys/mod.json"
     if ! command -v herdr-app &> /dev/null; then
