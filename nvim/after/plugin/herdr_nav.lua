@@ -1,26 +1,22 @@
--- herdr-nav-plus — Neovim side (optional, for full vim -> space walks)
+-- Neovim side of seamless <C-h/j/k/l> for both herdr flavours.
 --
--- Seamless <C-h/j/k/l> between Neovim splits and herdr. Move between Neovim
--- splits; at a split edge, hand off to the herdr-nav-plus plugin so focus
--- crosses into the neighbouring herdr pane AND, on the vertical axis (j/k),
--- keeps walking the workspace list (wrapping) at the pane-grid edge.
---
--- Load only ONE herdr navigation editor map. The simplest reliable install is
--- after/plugin so it wins over other <C-h/j/k/l> maps (e.g. vim-tmux-navigator):
---   cp editor/nvim.lua ~/.config/nvim/after/plugin/herdr_nav.lua
--- or dofile it from your config after plugins load.
-
-local PLUGIN = "herdr-nav-plus"
+-- herdr-app (HC_TERMINAL_ID): its nav-keys mod (herdr-app/mods/nav-keys) hands
+-- the chord to Neovim; at a split edge we ask herdr-app to focus the next pane.
+-- herdr TUI (HERDR_PANE_ID): hand off to the herdr-nav-plus plugin, whose
+-- edge-* actions also walk the workspace list on j/k.
+-- Loaded from after/plugin so it wins over other <C-h/j/k/l> maps
+-- (e.g. vim-tmux-navigator).
 
 local function cross(dir)
-  if vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= "" then
+  if vim.env.HC_TERMINAL_ID and vim.env.HC_TERMINAL_ID ~= "" then
+    vim.fn.system({ "herdr-app", "do", "pane.go", "--direction", dir })
+  elseif vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= "" then
     local herdr = vim.env.HERDR_BIN_PATH
     if herdr == nil or herdr == "" then
       herdr = "herdr"
     end
-    -- The edge-* actions skip the Vim-forward step, so this never bounces the
-    -- chord back into Neovim.
-    vim.fn.system({ herdr, "plugin", "action", "invoke", "edge-" .. dir, "--plugin", PLUGIN })
+    -- edge-* skips the Vim-forward step, so this never bounces back into Neovim.
+    vim.fn.system({ herdr, "plugin", "action", "invoke", "edge-" .. dir, "--plugin", "herdr-nav-plus" })
   elseif vim.env.TMUX and vim.env.TMUX ~= "" then
     local tmux = { left = "Left", down = "Down", up = "Up", right = "Right" }
     pcall(vim.cmd, "TmuxNavigate" .. tmux[dir])

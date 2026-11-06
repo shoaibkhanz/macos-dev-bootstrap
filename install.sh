@@ -177,6 +177,33 @@ link_herdr_configs() {
     # config.toml too — after either, re-link with `./install.sh --herdr`.
     link_file "$SCRIPT_DIR/herdr/plugins/radar/config.toml" \
         "$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar/config.toml"
+
+    link_herdr_app_configs
+}
+
+# Herdr (the desktop app, not the TUI above) keeps its state in
+# ~/.config/herdr-app. Link only what we author: keys.json, the theme, and the
+# nav-keys mod's two source files. NOT the mod directory — herdr-app writes
+# gpui-kit.d.ts and jsconfig.json into every mod folder, which would land in
+# this repo. settings.json is left alone too: the app rewrites it from its
+# settings screen. No "installed" step is needed beyond the links — mods hot
+# reload — except nav-keys' 1px resident window, which has to be opened once
+# (herdr-app remembers it via `keep`) and must NOT be re-run blindly:
+# `mod.open` toggles.
+link_herdr_app_configs() {
+    local app="$HOME/.config/herdr-app"
+    link_file "$SCRIPT_DIR/herdr-app/keys.json" "$app/keys.json"
+    link_file "$SCRIPT_DIR/herdr-app/themes/yugen-true.json" "$app/themes/yugen-true.json"
+    link_file "$SCRIPT_DIR/herdr-app/mods/nav-keys/main.js" "$app/mods/nav-keys/main.js"
+    link_file "$SCRIPT_DIR/herdr-app/mods/nav-keys/mod.json" "$app/mods/nav-keys/mod.json"
+    if ! command -v herdr-app &> /dev/null; then
+        return
+    fi
+    if grep -qs '"nav-keys"' "$app/windows.json"; then
+        return
+    fi
+    run herdr-app do mod.open --name nav-keys \
+        || warn "nav-keys window not opened (is Herdr running?). Once it is: herdr-app do mod.open --name nav-keys"
 }
 
 # `--only herdr` in two halves, because they fail for unrelated reasons.
@@ -241,7 +268,7 @@ component_help() {
         omp)         echo "the omp CLI" ;;
         macos)       echo "macOS system defaults" ;;
         dotfiles)    echo "zshrc, tmux.conf, nvim, ghostty, starship, lazygit, herdr configs" ;;
-        herdr)       echo "herdr config.toml, plugin configs, plugins, integrations" ;;
+        herdr)       echo "herdr config.toml, plugin configs, plugins, integrations; herdr-app keys, theme, nav-keys mod" ;;
         skills)      echo "vendored agent skills -> ~/.claude/skills + ~/.agents/skills, stale links pruned" ;;
         claude)      echo "skills, plus hooks, commands, rules and settings.json" ;;
         opencode)    echo "opencode agents, prompts, docs and Obsidian skills" ;;
@@ -865,6 +892,10 @@ backup_existing() {
             "$HOME/.config/herdr/config.toml"
             "$HOME/.config/herdr/plugins/config/herdr-plugin-workspace-manager/config.yml"
             "$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar/config.toml"
+            "$HOME/.config/herdr-app/keys.json"
+            "$HOME/.config/herdr-app/themes/yugen-true.json"
+            "$HOME/.config/herdr-app/mods/nav-keys/main.js"
+            "$HOME/.config/herdr-app/mods/nav-keys/mod.json"
         )
     fi
 

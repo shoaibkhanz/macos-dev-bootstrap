@@ -202,10 +202,11 @@ will never install.
 
   | Plugin id | Source | Keys |
   |---|---|---|
-  | `herdr-nav-plus` | [shoaibkhanz/herdr-nav-plus](https://github.com/shoaibkhanz/herdr-nav-plus) | direct `Ctrl+h/j/k/l` — vim split → pane → workspace (paired with `nvim/after/plugin/herdr_nav.lua`, a verbatim copy of the plugin's `editor/nvim.lua`) |
+  | `herdr-nav-plus` | [shoaibkhanz/herdr-nav-plus](https://github.com/shoaibkhanz/herdr-nav-plus) | direct `Ctrl+h/j/k/l` — vim split → pane → workspace (paired with `nvim/after/plugin/herdr_nav.lua`, which also covers herdr-app) |
   | `active-agent.jump` | [shoaibkhanz/herdr-active-agent-jump](https://github.com/shoaibkhanz/herdr-active-agent-jump) | `prefix+j` / `prefix+k` |
   | `attention.jump` | [milkyskies/herdr-attention](https://github.com/milkyskies/herdr-attention) | `prefix+a` |
   | `herdr-plugin-workspace-manager` | [razajamil/herdr-plugin-workspace-manager](https://github.com/razajamil/herdr-plugin-workspace-manager) | per-worktree layouts (event-driven, no key) |
+- **Herdr (desktop app)** - `herdr-app/` holds what we author for `~/.config/herdr-app`: `keys.json`, `themes/yugen-true.json`, and the `nav-keys` mod (seamless `Ctrl+h/j/k/l`: the mod sends the chord to Neovim when the focused pane runs nvim/vim, otherwise moves focus; Neovim hands off at its split edge via `herdr_nav.lua`). Each file is symlinked individually — the mod folder is not, because herdr-app writes `gpui-kit.d.ts`/`jsconfig.json` into every mod dir — and `settings.json` is left alone since the app rewrites it. The installer opens nav-keys' 1px resident window once (skipped if `windows.json` already has it); if Herdr wasn't running, run `herdr-app do mod.open --name nav-keys`. Third-party mods (`blueprint`, `annotator`) come from their own installers and are not vendored.
 - **Fast refresh** - `./install.sh --herdr` (= `--only herdr`) re-links the herdr configs, re-installs the plugins above, and re-runs `herdr integration install` for `pi`/`omp`/`claude` without running the rest of the installer — run it after pulling latest herdr changes.
 
 ### Global Gitignore
@@ -459,7 +460,8 @@ macos-dev-bootstrap/
 ├── lazygit/                # Lazygit config
 ├── marimo/                 # Marimo notebook config (templated, copied not symlinked)
 ├── claude/                 # Claude Code: agents/, rules/, commands/, settings.json
-├── herdr/                  # Herdr config
+├── herdr/                  # Herdr (TUI) config
+├── herdr-app/              # Herdr desktop app: keys, theme, nav-keys mod
 ├── archive/                # Retired configs — not installed, not symlinked (see archive/README.md)
 └── starship.toml           # Prompt config
 ```
