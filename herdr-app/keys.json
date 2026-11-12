@@ -63,8 +63,26 @@
     "ctrl-j": "pane.go:down",
     "ctrl-k": "pane.go:up",
     "ctrl-l": "pane.go:right",
-    "cmd-shift-b": {"command": "pane.split", "args": {"direction": "right", "mod": "blueprint"}},
-    "cmd-shift-r": {"command": "pane.split", "args": {"direction": "right", "mod": "annotator"}}
+    "cmd-shift-b": {
+      "command": "pane.split",
+      "args": {
+        "direction": "right",
+        "mod": "blueprint"
+      }
+    },
+    "cmd-shift-r": {
+      "command": "pane.split",
+      "args": {
+        "direction": "right",
+        "mod": "annotator"
+      }
+    },
+    "cmd-shift-g": "tabs-plus.graph",
+    "cmd-shift-u": "tabs-plus.prs",
+    "cmd-shift-k": "tabs-plus.skills",
+    "cmd-shift-j": "tabs-plus.attention",
+    "cmd-shift-o": "tabs-plus.worktrees",
+    "cmd-shift-m": "tabs-plus.usage"
   },
   "terminal": {
     "ctrl-h": "nav-keys.left",
@@ -81,5 +99,8 @@
     "cmd-left": "send:\u0001",
     "cmd-right": "send:\u0005",
     "cmd-backspace": "send:\u0015"
+  },
+  "layout:emergence": {
+    "cmd-b": "tabs-plus.rail"
   }
 }
